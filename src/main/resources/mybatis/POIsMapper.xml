@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.trajectory.trajectorygenerationporject.DAO.POIsDAO">
+    <select id="POIsList" resultType="com.trajectory.trajectorygenerationporject.POJO.POIs">
+        select * from tra.pois;
+    </select>
+    <select id="findPOIListByCityName" resultType="com.trajectory.trajectorygenerationporject.POJO.POIs">
+        select * from tra.pois where cityName = #{cityName};
+    </select>
+    <select id="findPOIListByCityCode" resultType="com.trajectory.trajectorygenerationporject.POJO.POIs">
+        select * from tra.pois where cityCode = #{cityCode};
+    </select>
+    <select id="findPOIListByAdCode" resultType="com.trajectory.trajectorygenerationporject.POJO.POIs">
+        select * from tra.pois where adCode = #{adCode};
+    </select>
+    <select id="findPOIListByAdName" resultType="com.trajectory.trajectorygenerationporject.POJO.POIs">
+        select * from tra.pois where adName = #{adName};
+    </select>
+    <select id="findPOIListByTypeName" resultType="com.trajectory.trajectorygenerationporject.POJO.POIs">
+        select * from tra.pois where typeName = #{typeName};
+    </select>
+    <select id="findPOIListByTypeCode" resultType="com.trajectory.trajectorygenerationporject.POJO.POIs">
+        select * from tra.pois where typeCode = #{typeCode};
+    </select>
+    <select id="findPOIByID" resultType="com.trajectory.trajectorygenerationporject.POJO.POIs">
+        select * from tra.pois where POIID = #{POIID};
+    </select>
+    <insert id="insertPOI" parameterType="com.trajectory.trajectorygenerationporject.POJO.POIs">
+        insert into tra.pois(POIID, adCode,  adName,  cityCode,
+                              cityName,  POIName,  POITypeName,  POITypeCode,
+                              Lng,  Lat,  entrLng,  entrLat,  exitLng,
+                              exitLat)
+        VALUES(#{POIID},#{adCode},#{adName},#{cityCode},#{cityName},#{POIName},
+               #{POITypeName},#{POITypeCode},#{Lng},#{Lat},#{entrLng},#{entrLat},
+               #{exitLng},#{exitLat})
+        ON DUPLICATE key UPDATE poiid = #{POIID}, entrLng = #{entrLng}, entrLat = #{entrLat}, exitLng = #{exitLng}, exitLat = #{exitLat}
+    </insert>
+    <select id="findPOIListByTypeCodeAndCityCode" resultType="com.trajectory.trajectorygenerationporject.POJO.POIs">
+        select * from tra.pois where cityCode = #{cityCode} and typeCode = #{typeCode};
+    </select>
+
+</mapper>

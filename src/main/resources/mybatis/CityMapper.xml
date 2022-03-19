@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.trajectory.trajectorygenerationporject.DAO.CityDAO">
+    <select id="listCity" resultType="com.trajectory.trajectorygenerationporject.POJO.City">
+        select * from tra.city;
+    </select>
+    <select id="findCityByAdcode" resultType="com.trajectory.trajectorygenerationporject.POJO.City">
+        select * from tra.city where adCode = #{adCode};
+    </select>
+    <select id="findCityListByAdName" resultType="com.trajectory.trajectorygenerationporject.POJO.City">
+        select * from tra.city where adName = #{adName};
+    </select>
+    <select id="findCityListByCityCode" resultType="com.trajectory.trajectorygenerationporject.POJO.City">
+        select * from tra.city where cityCode = #{cityCode};
+    </select>
+    <select id="findCityListByCityName" resultType="com.trajectory.trajectorygenerationporject.POJO.City">
+        select * from tra.city where cityName = #{cityName};
+    </select>
+    <select id="findCityListWithPOI" resultType="com.trajectory.trajectorygenerationporject.POJO.City">
+        select * from tra.city where POINumber > 0;
+    </select>
+    <update id="AddOnePOINumberByAdCode"  parameterType="String">
+        UPDATE City
+        SET POInumber = POINumber + 1 where adCode =  #{adCode};
+    </update>
+    <select id="findCityCodeByAdCode" resultType="String">
+        SELECT cityCode from tra.city where adCode = #{adCode};
+    </select>
+    <select id="findCityNameByAdCode" resultType="String">
+        select cityName from tra.city where adCode = #{adCode};
+    </select>
+    <select id="findAdCodeByCityNameAndAdname" resultType="String">
+        select adCode from tra.city where cityName = #{cityName} and adName = #{adName};
+    </select>
+    <select id="findAdNameByAdCode" resultType="String">
+        select adName from tra.city where adCode = #{adCode};
+    </select>
+
+</mapper>
