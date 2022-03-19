@@ -52,11 +52,13 @@ public class HelloWorldController {
 
     @GetMapping("/GenerateTrajectory")
     public String generateTrajectory() throws IOException{
-        List<Map<Integer, List<String>>> list = new ArrayList<>();
+        List<Map<Integer, List<Map<String, Integer>>>> list = new ArrayList<>();
         for(int i = 0; i < 6; i ++){
-            Map<Integer, List<String>> singleDay = new HashMap<>();
-            List<String> tempList = new ArrayList<>();
-            tempList.add("120302");
+            Map<Integer, List<Map<String, Integer>>> singleDay = new HashMap<>();
+            List<Map<String, Integer>> tempList = new ArrayList<>();
+            HashMap ttt = new HashMap<>();
+            ttt.put("120302",30000);
+            tempList.add(ttt);
             singleDay.put(0,tempList);
             singleDay.put(1,tempList);
             singleDay.put(2,tempList);
@@ -65,8 +67,10 @@ public class HelloWorldController {
             singleDay.put(5,tempList);
             singleDay.put(6,tempList);
             singleDay.put(7,tempList);
-            List<String> tempList2 = new ArrayList<>();
-            tempList2.add("141202");
+            List<Map<String, Integer>> tempList2 = new ArrayList<>();
+            HashMap ccc = new HashMap<>();
+            ccc.put("141202",3000);
+            tempList2.add(ccc);
             singleDay.put(8,tempList2);
             singleDay.put(9,tempList2);
             singleDay.put(10,tempList2);
@@ -75,15 +79,19 @@ public class HelloWorldController {
             singleDay.put(13,tempList2);
             singleDay.put(14,tempList2);
             singleDay.put(15,tempList2);
-            List<String> tempList3 = new ArrayList<>();
-            tempList3.add("050000");
-            tempList3.add("061205");
+            List<Map<String, Integer>> tempList3 = new ArrayList<>();
+            HashMap tcc = new HashMap<>();
+            tcc.put("050000",5000);
+            tcc.put("061205",5000);
+            tempList3.add(tcc);
             singleDay.put(16,tempList3);
             singleDay.put(17,tempList3);
-            List<String> tempList4 = new ArrayList<>();
-            tempList4.add("060400");
-            tempList4.add("050500");
-            tempList4.add("061205");
+            List<Map<String, Integer>> tempList4 = new ArrayList<>();
+            HashMap cascs = new HashMap();
+            cascs.put("060400",6000);
+            cascs.put("050500",3000);
+            cascs.put("061205",5000);
+            tempList4.add(cascs);
             singleDay.put(18,tempList4);
             singleDay.put(19,tempList4);
             singleDay.put(20,tempList);
@@ -92,9 +100,11 @@ public class HelloWorldController {
             singleDay.put(23,tempList);
             list.add(singleDay);
         }
-        Map<Integer, List<String>> singleDay = new HashMap<>();
-        List<String> tempList = new ArrayList<>();
-        tempList.add("120302");
+        Map<Integer, List<Map<String, Integer>>> singleDay = new HashMap<>();
+        List<Map<String, Integer>> tempList = new ArrayList<>();
+        HashMap<String, Integer> aca = new HashMap();
+        aca.put("120302", 4000);
+        tempList.add(aca);
         singleDay.put(0,tempList);
         singleDay.put(1,tempList);
         singleDay.put(2,tempList);
@@ -103,8 +113,10 @@ public class HelloWorldController {
         singleDay.put(5,tempList);
         singleDay.put(6,tempList);
         singleDay.put(7,tempList);
-        List<String> tempList2 = new ArrayList<>();
-        tempList2.add("120302");
+        List<Map<String, Integer>> tempList2 = new ArrayList<>();
+        HashMap<String, Integer> asdavvbrf = new HashMap<>();
+        asdavvbrf.put("120302",8000);
+        tempList2.add(asdavvbrf);
         singleDay.put(8,tempList2);
         singleDay.put(9,tempList2);
         singleDay.put(10,tempList2);
@@ -113,15 +125,19 @@ public class HelloWorldController {
         singleDay.put(13,tempList2);
         singleDay.put(14,tempList2);
         singleDay.put(15,tempList2);
-        List<String> tempList3 = new ArrayList<>();
-        tempList3.add("050000");
-        tempList3.add("061205");
+        List<Map<String, Integer>> tempList3 = new ArrayList<>();
+        HashMap<String, Integer> uyi = new HashMap<>();
+        uyi.put("050000",5000);
+        uyi.put("061205",99999);
+        tempList3.add(uyi);
         singleDay.put(16,tempList3);
         singleDay.put(17,tempList3);
-        List<String> tempList4 = new ArrayList<>();
-        tempList4.add("060400");
-        tempList4.add("050500");
-        tempList4.add("061205");
+        List<Map<String, Integer>> tempList4 = new ArrayList<>();
+        HashMap<String, Integer> dc = new HashMap<>();
+        dc.put("060400",15000);
+        dc.put("050500",20000);
+        dc.put("061205",30000);
+        tempList4.add(dc);
         singleDay.put(18,tempList4);
         singleDay.put(19,tempList4);
         singleDay.put(20,tempList);
@@ -129,7 +145,7 @@ public class HelloWorldController {
         singleDay.put(22,tempList);
         singleDay.put(23,tempList);
         list.add(singleDay);
-        Trajectory trajectory = new Trajectory();
+        Trajectory trajectory;
         trajectory = pathService.getTrajectoriy("北京市","朝阳区","2022-03-19 00:00:00", "2022-03-23 00:00:00",list, false, 20, "学生","M", true, "疫苗",5,9);
         //创建工作薄对象
         Util.outputtheTrajectory(trajectory, "tra");

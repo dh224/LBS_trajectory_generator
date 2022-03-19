@@ -115,7 +115,7 @@ public class POIsServiceImpl implements POIsService {
     }
 
     public String findRandomPOIWithCityCodeAndTypeCodeAndDistance(String cityCode, String typeCode, Position basePosition, Integer radius) throws IOException{
-        Integer page_num = Util.rand.nextInt(10);
+        Integer page_num = Util.rand.nextInt(20);
         String url = "https://restapi.amap.com/v5/place/around?parameters" + "&key=192b951ff8bc56e05cb476f8740a760c&types=" + typeCode +
                 "&region=" + cityCode + "&location=" + basePosition.getLng() + "," + basePosition.getLat() + "&radius=" + radius + "&city_limit=true" +"&show_fields=navi&page_size=15&page_num=" + page_num;
         this.log.info("发送请求依据距离获得随机POI url:" + url);
