@@ -29,9 +29,27 @@ public class PathServiceImpl implements PathService {
     @Autowired
     POIsService poIsService;
     Random rand = new Random();
+
     @Override
-    public Trajectory getTrajectoriy(String cityName, String adName, String startT, String endT, List<Map<Integer, List<Map<String, Integer>>>> pattern, boolean isRestrict, int age, String job, String sex, boolean isMask, String Vaccines, int drivingRate, int commutingTimeRate) throws IOException {
+    public List<Trajectory> getTrajectoriesFromPost(LocalDateTime startTime, LocalDateTime endTime, int trajectoryNum, JSONArray patterns){
+        List<Trajectory> res;
+        for (Object p : patterns) {
+            JSONObject tt = (JSONObject)p;
+
+        }
+        return null;
+    }
+
+
+
+
+
+    @Override
+    public Trajectory getTrajectory(String cityName, String adName, String startT, String endT, List<Map<Integer, List<Map<String, Integer>>>> pattern, boolean isRestrict, int age, String job, String sex, boolean isMask, String Vaccines, int drivingRate, int commutingTimeRate,String index) throws IOException {
         //要求起始值和结束的时间为整小时。
+        System.out.println("list::" + pattern);
+        System.out.println(startT);
+        System.out.println(endT);
         var dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         int maxRandomStayTime = 15; //minues;
         var startTime = LocalDateTime.parse(startT,dateFormatter);
@@ -52,24 +70,30 @@ public class PathServiceImpl implements PathService {
         while(curTime.compareTo(endTime) < 0){ // 当前时间早于生成终止时间，继续生成
             var curDayPattern = pattern.get(curTime.getDayOfWeek().getValue() - 1); //得到当天的行为模式表
             var curTimeOfHour = curTime.getHour(); //获得当前是第几个小时
-            if(curDayPattern.get(curTimeOfHour).contains(curPositionType)){ // 当前位置类型已经在应该在的位置了，因此需要创建停留点
+                    //curDayPattern.get(curTimeOfHour).contains(curPositionType)
+            System.out.println(curPositionType + "  " + curDayPattern.get(curTimeOfHour) + Integer.toString(curTimeOfHour) + curDayPattern);
+            if(Util.isHaveTypeCode(curPositionType,curDayPattern.get(curTimeOfHour))){ // 当前位置类型已经在应该在的位置了，因此需要创建停留点
+                System.out.println("创建停留点");
                 if(!thisPathPOIs.containsKey(curPositionType)){
                     //搜索POI只考虑城市，而不考虑当前距离
                     this.log.info("不考虑距离获取POI" );
                     String targetPOIID = poIsService.findRandomPOIWithCityCodeAndTypeCode(cityCode, curPositionType);
                     thisPathPOIs.put(curPositionType, poisDAO.findPOIByID(targetPOIID));
                 }else{
+                    System.out.println("当前列表中已经有了typecode了");
                     var nextHourTime = curTime.plusHours(1).minusSeconds(curTime.getMinute());
                     curTime = pathStayAwhile(curTime, nextHourTime, thisPathPOIs.get(curPositionType),res);
                 }
             }else{ //需要进行移动.
                 //进行随机的停留时间，增加真实性。
                 var RTGTime = curTime.plusMinutes(rand.nextInt(maxRandomStayTime));
+                System.out.println(thisPathPOIs + curPositionType);
+                System.out.println("需要进行移动" + curDayPattern.get(curTimeOfHour) + "curpoiType:" + curPositionType);
                 curTime = pathStayAwhile(curTime, RTGTime, thisPathPOIs.get(curPositionType),res);
                 curTimeOfHour = curTime.getHour(); // 更新小时
                 curDayPattern = pattern.get(curTime.getDayOfWeek().getValue() - 1); //更新日行为模式，以防等待后进入下一天.
-
-                if(curDayPattern.get(curTimeOfHour).contains(curPositionType)){ //避免在等待后进入下一个时间段，并且下一个时间段应处位置等同于当前位置。
+                //curDayPattern.get(curTimeOfHour).contains(curPositionType)
+                if(Util.isHaveTypeCode(curPositionType,curDayPattern.get(curTimeOfHour))){ //避免在等待后进入下一个时间段，并且下一个时间段应处位置等同于当前位置。
                     var nextHourTime = curTime.plusHours(1).minusSeconds(curTime.getMinute());
                     curTime = pathStayAwhile(curTime, nextHourTime,thisPathPOIs.get(curPositionType),res);//相当于又等到下个小时.
                 }else{ //确保会前往下一个地点
@@ -81,40 +105,55 @@ public class PathServiceImpl implements PathService {
                         targetPositionTypeMap = curDayPattern.get(curTimeOfHour).get(0); //选第一个
                     }
                     targetPositionType = getTypeCodeByCurMap(targetPositionTypeMap);
+                    System.out.println("下一点的type" + targetPositionType);
                     if(thisPathPOIs.containsKey(targetPositionType)){ //如果此地在之前已经被访问过
                         //发送请求，拼接
                         POIs curPoi = thisPathPOIs.get(curPositionType);
                         POIs nextPoi = thisPathPOIs.get(targetPositionType);
                         this.log.info("前往重复的目标POI,名称是："+ nextPoi.getPOIName() );
                         if(isDriving(curPoi, nextPoi, drivingRate)){
-                            curTime = sentGetAndCombinationTrajectoryWithDrivingmode(curPoi, nextPoi, res, curTime); // 出发！
+                            LocalDateTime temp = sentGetAndCombinationTrajectoryWithDrivingmode(curPoi, nextPoi, res, curTime); // 出发！
+                            curTime = temp;
+                            System.out.println("设置当前点为：" + nextPoi.getPOITypeCode());
                             curPositionType = nextPoi.getPOITypeCode();
                         }else{
-                            curTime = sentGetAndCombinationTrajectoryWithWalkingmode(curPoi, nextPoi, res, curTime); // 出发！
+                            LocalDateTime temp = sentGetAndCombinationTrajectoryWithWalkingmode(curPoi, nextPoi, res, curTime); // 出发！
+                            if(temp != null) curTime = temp;
+                            else curTime = sentGetAndCombinationTrajectoryWithDrivingmode(curPoi, nextPoi, res, curTime);
+                            System.out.println("设置当前点为：" + nextPoi.getPOITypeCode());
                             curPositionType = nextPoi.getPOITypeCode();
                         }
                     }else{ //若没有访问过此类地点，则先随机获得一个该地点的POI。随后再申请轨迹
+                        String targetPOIID;
                         POIs curPoi = thisPathPOIs.get(curPositionType);
                         Position curPoiPosition = new Position(curPoi.getLng(), curPoi.getLat(), curPoi.getPOITypeCode());
-                        String targetPOIID;
                         if(commutingTimeRate < 5){
                             //只考虑类别和城市，可能会导致大范围通勤
                             System.out.println("直接申请的POI");
                             targetPOIID = poIsService.findRandomPOIWithCityCodeAndTypeCode(cityCode, targetPositionType);
+                            if (targetPOIID==null){
+                                targetPOIID = poIsService.findRandomPOIWithCityCodeAndTypeCode(cityCode, targetPositionType);
+                            }
                         }else{
                             //搜索POI考虑城市和当前所在的位置，减少大范围通勤情况.
-
-                            this.log.info("限定范围的申请POI!\n当前的中心点是:" + curPoiPosition.getLng() + "," + curPoiPosition.getLat());
-                            targetPOIID = poIsService.findRandomPOIWithCityCodeAndTypeCodeAndDistance(cityCode, targetPositionType, curPoiPosition,targetPositionTypeMap.get(curPositionType));
+                            this.log.info("限定范围的申请POIType:" + targetPositionType + "!\n当前的中心点是:" + curPoiPosition.getLng() + "," + curPoiPosition.getLat());
+                            targetPOIID = poIsService.findRandomPOIWithCityCodeAndTypeCodeAndDistance(cityCode, targetPositionType, curPoiPosition,targetPositionTypeMap.get(targetPositionType));
+                            if (targetPOIID==null){
+                                targetPOIID = poIsService.findRandomPOIWithCityCodeAndTypeCode(cityCode, targetPositionType);
+                            }
                         }
                         POIs nextPoi = poisDAO.findPOIByID(targetPOIID);
-                        this.log.info("一个新的目标POI名称是:" + nextPoi.getPOIName() + "当前预期的最大通勤距离是：" + targetPositionTypeMap.get(curPositionType));
+                        this.log.info("一个新的目标POI名称是:" + nextPoi.getPOIName() + "当前预期的最大通勤距离是：" + targetPositionTypeMap.get(targetPositionType));
                         thisPathPOIs.put(nextPoi.getPOITypeCode(), nextPoi); // 将新地点插入map中
                         if(isDriving(curPoi, nextPoi, drivingRate)){
                             curTime = sentGetAndCombinationTrajectoryWithDrivingmode(curPoi, nextPoi, res, curTime); // 出发！
+                            System.out.println("新设置当前点为：" + nextPoi.getPOITypeCode());
                             curPositionType = nextPoi.getPOITypeCode();
                         }else{
-                            curTime = sentGetAndCombinationTrajectoryWithWalkingmode(curPoi, nextPoi, res, curTime); // 出发！
+                            LocalDateTime temp = sentGetAndCombinationTrajectoryWithWalkingmode(curPoi, nextPoi, res, curTime); // 出发！
+                            if(temp != null) curTime = temp;
+                            else curTime = sentGetAndCombinationTrajectoryWithDrivingmode(curPoi, nextPoi, res, curTime); // 出发！
+                            System.out.println("新设置当前点为：" + nextPoi.getPOITypeCode());
                             curPositionType = nextPoi.getPOITypeCode();
                         }
                         //curTime = sentGetAndCombinationTrajectory(curPoi, nextPoi, res, drivingRate, curTime);// 出发！
@@ -123,6 +162,7 @@ public class PathServiceImpl implements PathService {
             }
         }
         RemoveRepeatNum(res);
+        Util.outputtheTrajectoryPOIS(thisPathPOIs,index);
         return res;
     }
     public String getTypeCodeByCurMap(Map<String, Integer> curMap){
@@ -132,7 +172,7 @@ public class PathServiceImpl implements PathService {
         double distance = Util.getDistance(curPoi.getLng(), curPoi.getLat(), nextPoi.getLng(), nextPoi.getLat());
         boolean isDriving = false;
         if(distance / 2000.0 > 1){
-            if(rate > rand.nextInt(10)){
+            if(rate/(distance / 2000.0) > rand.nextInt(10)){
                 isDriving = true;
             }
         }else{
@@ -144,18 +184,18 @@ public class PathServiceImpl implements PathService {
         return  isDriving;
     }
     public LocalDateTime sentGetAndCombinationTrajectoryWithDrivingmode(POIs curPOI, POIs nextPOI, Trajectory res, LocalDateTime curTime) throws IOException {
-        double distance = Util.getDistance(curPOI.getLng(), curPOI.getLat(), nextPOI.getLng(), nextPOI.getLat());
-        String startLL = curPOI.getLng() + "," + curPOI.getLat();
-        String endLL = nextPOI.getLng() + "," + nextPOI.getLat();
-        String url = "https://restapi.amap.com/v5/direction/" + "driving" + "?parameters&key=192b951ff8bc56e05cb476f8740a760c&origin="
-                + startLL + "&destination=" + endLL + "&origin_id=" + curPOI.getPOIID() + "&destination_id" + nextPOI.getPOIID() +
-                "&show_fields=cost,polyline";
-        System.out.println("sentGetAndCombinationTrajectory   " + url);
-        JSONObject singlePath =  Util.sentGet(url);
-        OriginPath originPath = getOriginPathFromJSON(singlePath, "driving");
-        //Util.outputtheOriginPath(originPath, curTime.getDayOfWeek().toString() + "D" + curTime.getHour() + "H" + curTime.getMinute() + "M" + curTime.getSecond());
-        curTime = addPositionFromOriginPath(originPath,curTime,  5, res); //此时curTime为最后一点的时间，即到达时间.
-        return curTime;
+            double distance = Util.getDistance(curPOI.getLng(), curPOI.getLat(), nextPOI.getLng(), nextPOI.getLat());
+            String startLL = curPOI.getLng() + "," + curPOI.getLat();
+            String endLL = nextPOI.getLng() + "," + nextPOI.getLat();
+            String url = "https://restapi.amap.com/v5/direction/" + "driving" + "?parameters&key=192b951ff8bc56e05cb476f8740a760c&origin="
+                    + startLL + "&destination=" + endLL + "&origin_id=" + curPOI.getPOIID() + "&destination_id" + nextPOI.getPOIID() +
+                    "&show_fields=cost,polyline";
+            System.out.println("sentGetAndCombinationTrajectory   " + url);
+            JSONObject singlePath =  Util.sentGet(url);
+            OriginPath originPath = getOriginPathFromJSON(singlePath, "driving");
+            //Util.outputtheOriginPath(originPath, curTime.getDayOfWeek().toString() + "D" + curTime.getHour() + "H" + curTime.getMinute() + "M" + curTime.getSecond());
+            curTime = addPositionFromOriginPath(originPath,curTime,  5, res); //此时curTime为最后一点的时间，即到达时间.
+            return curTime;
     }
 
     public LocalDateTime sentGetAndCombinationTrajectoryWithWalkingmode(POIs curPOI, POIs nextPOI, Trajectory res, LocalDateTime curTime) throws IOException {
@@ -167,6 +207,10 @@ public class PathServiceImpl implements PathService {
                 "&show_fields=cost,polyline";
         this.log.info("sentGetAndCombinationTrajectory " + url);
         JSONObject singlePath =  Util.sentGet(url);
+
+        if(singlePath.get("status").toString().equals("0")){
+            return null;
+        }
         OriginPath originPath = getOriginPathFromJSON(singlePath, "walking");
         //Util.outputtheOriginPath(originPath, curTime.getDayOfWeek().toString() + "D" + curTime.getHour() + "H" + curTime.getMinute() + "M" + curTime.getSecond());
         curTime = addPositionFromOriginPath(originPath,curTime,  5, res); //此时curTime为最后一点的时间，即到达时间.
@@ -214,6 +258,8 @@ public class PathServiceImpl implements PathService {
     }
 
     public LocalDateTime pathStayAwhile(LocalDateTime startTime, LocalDateTime endTime, POIs poi,Trajectory res){
+        System.out.println("pathStay" + poi.getPOIName());
+
         while(startTime.plusSeconds(5).compareTo(endTime) < 0){
             var temp = new Position(poi.getLng(), poi.getLat(),poi.getPOITypeCode());
             res.addPathWithTimeline(temp,startTime);

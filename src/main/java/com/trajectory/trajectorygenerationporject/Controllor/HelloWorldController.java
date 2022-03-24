@@ -1,22 +1,19 @@
 package com.trajectory.trajectorygenerationporject.Controllor;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.trajectory.trajectorygenerationporject.Common.Util;
+import com.trajectory.trajectorygenerationporject.POJO.POIType;
+import com.trajectory.trajectorygenerationporject.POJO.POIs;
 import com.trajectory.trajectorygenerationporject.POJO.Trajectory;
 import com.trajectory.trajectorygenerationporject.Service.CityService;
+import com.trajectory.trajectorygenerationporject.Service.POITypeService;
 import com.trajectory.trajectorygenerationporject.Service.POIsService;
 import com.trajectory.trajectorygenerationporject.Service.PathService;
-import org.apache.poi.hssf.usermodel.HSSFRow;
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.RichTextString;
-import org.apache.poi.xssf.usermodel.XSSFRow;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,6 +30,10 @@ public class HelloWorldController {
 
     @Autowired
     private POIsService poisService;
+
+    @Autowired
+    private POITypeService poiTypeService;
+
     @GetMapping("/hello")
     public String hello() throws IOException {
 //        LocalDateTime time = LocalDateTime.now();
@@ -49,7 +50,118 @@ public class HelloWorldController {
         poisService.searchPOIsAllType(cityName, adName);
         return "1";
     }
+    @CrossOrigin(originPatterns = "http://localhost:3000")
+    @ResponseBody()
+    @PostMapping("/generate")
+    public String generate(@RequestBody JSONObject post) throws IOException {
+        String pName = post.get("pname").toString();
+        String cityName = post.get("cityname").toString();
+        if(pName.equals("北京市") || pName.equals("上海市") || pName.equals("重庆市")|| pName.equals("天津市")){
+            cityName = pName;
+        }else{
+        }
+        int trajectoryNum = Integer.parseInt(post.get("trajectorysize").toString()) ;
+        System.out.println(post);
+        String startTime = post.get("starttime").toString();
+        String endTime = post.get("endtime").toString();
+        String temp =JSONArray.toJSONString(post.get("pattern"));
+        JSONArray patterns = JSON.parseArray(temp);
+        List<List<Map<Integer, List<Map<String, Integer>>>>> patternsList = new ArrayList<>();
+        List<JSONObject> patternsAttributeList = new ArrayList<>();
+        for(int i = 0; i < patterns.size(); i++){
+            var onePatternInfo = (JSONObject)patterns.get(i);
+            JSONArray onePattern = (JSONArray)onePatternInfo.get("pattern");
+            JSONObject onePatternAttributeInfo = (JSONObject)onePattern.get(0);
+            JSONObject onePatternWorkdayPatternInfo = (JSONObject)onePattern.get(1);
+            JSONObject onePatternNoworkdayPatternInfo = (JSONObject)onePattern.get(2);
+            JSONObject onePatternAttribute  = (JSONObject)onePatternAttributeInfo.get("attribute");
+            JSONArray onePatternWorkdayPattern =  (JSONArray)onePatternWorkdayPatternInfo.get("workdayPattern");
+            JSONArray onePatternNoworkdayPattern =  (JSONArray)onePatternNoworkdayPatternInfo.get("noworkdayPattern");
+            patternsAttributeList.add(onePatternAttribute);
+            int workdayday = 5;
+            int noworkdayday = 2;
+            List<Map<Integer, List<Map<String, Integer>>>> pattern = new ArrayList<>();
+            for(int j = 0; j < workdayday; j++){
+                Map<Integer, List<Map<String, Integer>>> singleDay = new HashMap<>();
+                int workdayPatternTimeSize = onePatternWorkdayPattern.size();
+                for(int k = 0; k < workdayPatternTimeSize; k ++){
+                    JSONObject timeQuantum = (JSONObject) onePatternWorkdayPattern.get(k);
+                    JSONArray tempTypeCode = ((JSONObject) onePatternWorkdayPattern.get(k)).getJSONArray("value");
+                    String commuteString = ((JSONObject) onePatternWorkdayPattern.get(k)).get("commute").toString();
+                    int radius = 50000;
+                    if(commuteString.equals("不限")){
+                    }else if(commuteString.equals("长距离")) radius = 20000;
+                    else if(commuteString.equals("中距离")) radius = 10000;
+                    else if(commuteString.equals("短距离")) radius = 5000;
 
+                    int stTime = Integer.valueOf(timeQuantum.getString("startTime").substring(0,2));
+                    int edTime = Integer.valueOf(timeQuantum.getString("endTime").substring(0,2));
+                    if(edTime == 0) edTime = 24;
+                    List<Map<String, Integer>> tempList = new ArrayList<>();
+                    for(int l = 0; l < tempTypeCode.size(); l++){
+                        String tt = tempTypeCode.get(l).toString();
+                        Map<String, Integer> ttttt = new HashMap<>();
+                        POIType poiType = poiTypeService.findTypeCodeBySubCategory(tt);
+                        ttttt.put(poiType.getTypeCode(), radius);
+                        tempList.add(ttttt);
+                    }
+                    for(;stTime<edTime;stTime++){
+                        singleDay.put(stTime,tempList);
+                    }
+                    singleDay.remove(24);
+                }
+                pattern.add(singleDay);
+            }
+            for(int j = 0; j < noworkdayday; j++){
+                Map<Integer, List<Map<String, Integer>>> singleDay = new HashMap<>();
+                int noworkdayPatternSize = onePatternNoworkdayPattern.size();
+                for(int k = 0; k < noworkdayPatternSize; k ++){
+                    JSONObject timeQuantum = (JSONObject) onePatternNoworkdayPattern.get(k);
+                    JSONArray tempTypeCode = ((JSONObject) onePatternNoworkdayPattern.get(k)).getJSONArray("value");
+                    String commuteString = ((JSONObject) onePatternNoworkdayPattern.get(k)).get("commute").toString();
+                    int radius = 50000;
+                    if(commuteString.equals("不限")){
+                    }else if(commuteString.equals("长距离")) radius = 20000;
+                    else if(commuteString.equals("中距离")) radius = 10000;
+                    else if(commuteString.equals("短距离")) radius = 5000;
+
+                    int stTime = Integer.valueOf(timeQuantum.getString("startTime").substring(0,2));
+                    int edTime = Integer.valueOf(timeQuantum.getString("endTime").substring(0,2));
+                    if(edTime == 0) edTime = 24;
+                    List<Map<String, Integer>> tempList = new ArrayList<>();
+                    for(int l = 0; l < tempTypeCode.size(); l++){
+                        String tt = tempTypeCode.get(l).toString();
+                        Map<String, Integer> ttttt = new HashMap<>();
+                        POIType poiType = poiTypeService.findTypeCodeBySubCategory(tt);
+                        ttttt.put(poiType.getTypeCode(), radius);
+                        tempList.add(ttttt);
+                    }
+                    for(;stTime<edTime;stTime++){
+                        singleDay.put(stTime,tempList);
+                    }
+                }
+                pattern.add(singleDay);
+            }
+            patternsList.add(pattern);
+        }
+//        int TrajectoryRateNum = 0;
+//        for(int i =0; i < patternsAttributeList.size(); i++){
+//            TrajectoryRateNum += Integer.parseInt(patternsAttributeList.get(i).get("patternrate").toString());
+//        }
+        System.out.println("pattern:" + patternsList);
+        List<Trajectory> res = new ArrayList<>();
+        for(int i = 0; i < trajectoryNum; i ++){
+            int num = Util.rand.nextInt(patternsList.size());
+            int maxage = Integer.parseInt(patternsAttributeList.get(num).get("maxage").toString());
+            int minAge = Integer.parseInt(patternsAttributeList.get(num).get("minage").toString());
+            var pattern = patternsList.get(num);
+            String TraName = patternsAttributeList.get(num).get("patternname").toString();
+            int randomage = Util.rand.nextInt(maxage - minAge + 1) + minAge;
+            Trajectory trajectory = pathService.getTrajectory(cityName,cityName,startTime, endTime,pattern, false, randomage, "学生","M", true, "疫苗",5,9,TraName+ i+"POIs");
+            Util.outputtheTrajectory(trajectory, TraName + i) ;
+        }
+        return "已生成" + trajectoryNum + "个轨迹";
+    }
     @GetMapping("/GenerateTrajectory")
     public String generateTrajectory() throws IOException{
         List<Map<Integer, List<Map<String, Integer>>>> list = new ArrayList<>();
@@ -145,8 +257,10 @@ public class HelloWorldController {
         singleDay.put(22,tempList);
         singleDay.put(23,tempList);
         list.add(singleDay);
+        System.out.println(list);
         Trajectory trajectory;
-        trajectory = pathService.getTrajectoriy("北京市","朝阳区","2022-03-19 00:00:00", "2022-03-23 00:00:00",list, false, 20, "学生","M", true, "疫苗",5,9);
+        trajectory = pathService.getTrajectory("北京市","朝阳区","2022-03-19 00:00:00", "2022-03-23 00:00:00",list, false, 20, "学生","M", true, "疫苗",5,9,"fileName");
+
         //创建工作薄对象
         Util.outputtheTrajectory(trajectory, "tra");
         return "1";

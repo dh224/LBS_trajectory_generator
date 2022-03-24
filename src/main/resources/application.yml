@@ -1,5 +1,8 @@
 server:
   port: 8080
+  servlet:
+    context-path: /
+
 spring:
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
@@ -7,6 +10,15 @@ spring:
     password: 13104PASSword
     url: jdbc:mysql://localhost:3306/tra?useUnicode=true&characterEncoding=utf-8&serverTimezone=GMT
     driver-class-name: com.mysql.cj.jdbc.Driver
+    druid:
+      stat-view-servlet:
+        url-pattern: /druid/*
+        reset-enable: truetype
+        login-username: duhang
+        login-password: a123456
+      web-stat-filter:
+        url-pattern: /*
+        exclusions: "*.js,*.gif,*.jpg,*.bmp,*.png,*.css,*.ico,/druid/*"
 
 mybatis:
   type-aliases-package:  trajectory.POJO

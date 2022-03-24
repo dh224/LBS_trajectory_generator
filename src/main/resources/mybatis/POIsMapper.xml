@@ -35,7 +35,7 @@
         VALUES(#{POIID},#{adCode},#{adName},#{cityCode},#{cityName},#{POIName},
                #{POITypeName},#{POITypeCode},#{Lng},#{Lat},#{entrLng},#{entrLat},
                #{exitLng},#{exitLat})
-        ON DUPLICATE key UPDATE poiid = #{POIID}, entrLng = #{entrLng}, entrLat = #{entrLat}, exitLng = #{exitLng}, exitLat = #{exitLat}
+        ON DUPLICATE key UPDATE poiid = #{POIID}, POITypeCode = #{POITypeCode}
     </insert>
     <select id="findPOIListByTypeCodeAndCityCode" resultType="com.trajectory.trajectorygenerationporject.POJO.POIs">
         select * from tra.pois where cityCode = #{cityCode} and typeCode = #{typeCode};

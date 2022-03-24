@@ -1,7 +1,9 @@
 package com.trajectory.trajectorygenerationporject.Common;
 
 import com.alibaba.fastjson.JSONObject;
+import com.fasterxml.uuid.Generators;
 import com.trajectory.trajectorygenerationporject.POJO.OriginPath;
+import com.trajectory.trajectorygenerationporject.POJO.POIs;
 import com.trajectory.trajectorygenerationporject.POJO.Trajectory;
 import okhttp3.Headers;
 import okhttp3.OkHttpClient;
@@ -17,10 +19,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 public class Util {
     static final OkHttpClient client = new OkHttpClient();
@@ -45,7 +44,20 @@ public class Util {
         }
         return null;
     }
-
+    public static String getTimeString(String fake){
+        String[] startTimeN = fake.split("T");
+        String startTime = startTimeN[0] + " " +  startTimeN[1];
+        startTime = startTime.substring(0,startTime.length() - 5);
+        return startTime;
+    }
+    public static boolean isHaveTypeCode(String typecode ,List<Map<String, Integer>> list){
+        for(int i = 0; i < list.size(); i ++){
+            if(list.get(i).containsKey(typecode)){
+                return true;
+            }
+        }
+        return false;
+    }
     public static double getDistance(String longitude1, String latitude1, String longitude2, String latitude2) {
         double x_Lng = Double.valueOf(longitude1);
         double x_Lat = Double.valueOf(latitude1);
@@ -90,33 +102,30 @@ public class Util {
         //创建工作表对象
         XSSFSheet sheet = workbook.createSheet();
         for(int i = 0; i < trajectory.path.size(); i ++){
-            System.out.print(trajectory.path.get(i) + "  ");
-            System.out.print(trajectory.timeLine.get(i) + " ");
             //创建工作表的行
-
             XSSFRow row = sheet.createRow(i);//设置第一行，从零开始
             row.createCell(0).setCellValue("[" + trajectory.path.get(i).getLng()+ "," + trajectory.path.get(i).getLat() +  "],");//第一行第三列为aaaaaaaaaaaa
             row.createCell(1).setCellValue(String.valueOf(trajectory.timeLine.get(i)));//第一行第一列为日期
-
         }
         //文档输出
-        FileOutputStream out = new FileOutputStream("./" +filenName + ".xlsx");
+        System.out.println("生成轨迹");
+        UUID uuid1 = Generators.timeBasedGenerator().generate();
+        FileOutputStream out = new FileOutputStream(".\\src\\main\\resources\\static\\" +filenName + "u"+ uuid1.toString() + ".xlsx");
         workbook.write(out);
         out.close();
     }
-    public static void outputtheOriginPath(OriginPath trajectory, String filenName) throws IOException {
-        XSSFWorkbook workbook = new XSSFWorkbook();//这里也可以设置sheet的Name
-        //创建工作表对象
+
+    public static void outputtheTrajectoryPOIS(Map<String, POIs> poIsMap, String filenName) throws IOException {
+        XSSFWorkbook workbook=new XSSFWorkbook();//这里也可以设置sheet的Name
         XSSFSheet sheet = workbook.createSheet();
-        int index = 0;
-        for(int i = 0; i < trajectory.getStep_polyLine().size();i++){
-            for(int j = 0; j < trajectory.getStep_polyLine().get(i).size(); j++){
-                XSSFRow row = sheet.createRow(index++);//设置第一行，从零开始
-                row.createCell(0).setCellValue("[" + trajectory.getStep_polyLine().get(i).get(j).getLng() + "," + trajectory.getStep_polyLine().get(i).get(j).getLat()  +  "],");//第一行第三列为aaaaaaaaaaaa
-            }
+        Set<String> allKeys = poIsMap.keySet();
+        int i = 0;
+        for(var key : allKeys){
+            XSSFRow row = sheet.createRow(i++);//设置第一行，从零开始
+            row.createCell(0).setCellValue(poIsMap.get(key).getPOIName());
         }
-        //文档输出
-        FileOutputStream out = new FileOutputStream("./" +filenName +  ".xlsx");
+        UUID uuid1 = Generators.timeBasedGenerator().generate();
+        FileOutputStream out = new FileOutputStream(".\\src\\main\\resources\\static\\" +filenName + "u"+ uuid1.toString() +".xlsx");
         workbook.write(out);
         out.close();
     }

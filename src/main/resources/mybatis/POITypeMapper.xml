@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.trajectory.trajectorygenerationporject.DAO.POITypeDAO">
+    <select id="listPOIType" resultType="com.trajectory.trajectorygenerationporject.POJO.POIType">
+        select * from tra.poitype;
+    </select>
+    <select id="findTypeCodeBySubCategory" resultType="com.trajectory.trajectorygenerationporject.POJO.POIType">
+        select * from tra.poitype where subcategory =  #{subCategory};
+    </select>
+</mapper>

@@ -73,6 +73,7 @@ public class POIsServiceImpl implements POIsService {
     public void insertPOI(String POIID, String adCode, String adName, String cityCode, String cityName, String POIName, String POITypeName, String POItypeCode, String lng, String lat, String entrLng, String entrLat, String exitLng, String exitLat) {
         POIs pois = new POIs(adCode, adName, cityCode, cityName, POIID, POIName, POITypeName,
                 POITypeName, lng, lat, entrLng, entrLat, exitLng, exitLat);
+        System.out.println("插入新POI记录" + pois.getPOIName() + "  " + pois.getPOITypeCode());
         poisDAO.insertPOI(pois);
     }
 
@@ -87,7 +88,7 @@ public class POIsServiceImpl implements POIsService {
                     JSONObject res = Util.sentGet("https://restapi.amap.com/v5/place/text?key=192b951ff8bc56e05cb476f8740a760c&types=" + type  + "&region=" + adCode + "&city_limit=true&page_num="+   i +"&page_size=25&show_fields=navi");
                     var pois = res.getJSONArray("pois");
                     for(int j =0; j < pois.size(); j++){
-                        parsePOIAndInsert(pois, j);
+                        parsePOIAndInsert(pois, "typecode",j);
                     }
                 }
             }
@@ -101,7 +102,9 @@ public class POIsServiceImpl implements POIsService {
         this.log.info("发送请求获得随机POI url:" + url);
         JSONObject res = Util.sentGet(url);
         var pois = res.getJSONArray("pois");
+        int Max_num = 0;
         while(pois.size() == 0){
+            if(Max_num++ > 30) return null;
             this.log.info("选到了空白页，重新发送请求.");
             page_num = Util.rand.nextInt(20);
             url = "https://restapi.amap.com/v5/place/text?parameters&key=192b951ff8bc56e05cb476f8740a760c&types=" + typeCode +
@@ -110,18 +113,21 @@ public class POIsServiceImpl implements POIsService {
             pois = res.getJSONArray("pois");
         }
         int poi_num = Util.rand.nextInt(pois.size());
-        String poiid = parsePOIAndInsert(pois, poi_num);
+        String poiid = parsePOIAndInsert(pois, typeCode,poi_num);
         return poiid;
     }
 
     public String findRandomPOIWithCityCodeAndTypeCodeAndDistance(String cityCode, String typeCode, Position basePosition, Integer radius) throws IOException{
         Integer page_num = Util.rand.nextInt(20);
+        System.out.println("findRandomPOIWithCityCodeAndTypeCodeAndDistance" +radius );
         String url = "https://restapi.amap.com/v5/place/around?parameters" + "&key=192b951ff8bc56e05cb476f8740a760c&types=" + typeCode +
                 "&region=" + cityCode + "&location=" + basePosition.getLng() + "," + basePosition.getLat() + "&radius=" + radius + "&city_limit=true" +"&show_fields=navi&page_size=15&page_num=" + page_num;
         this.log.info("发送请求依据距离获得随机POI url:" + url);
         JSONObject res = Util.sentGet(url);
         var pois = res.getJSONArray("pois");
+        int Max_num = 0;
         while(pois.size() == 0){
+            if(Max_num++ > 30) return null;
             this.log.info("选到了空白页，重新发送请求.");
             page_num = Util.rand.nextInt(10);
             url = "https://restapi.amap.com/v5/place/around?parameters" + "&key=192b951ff8bc56e05cb476f8740a760c&types=" + typeCode +
@@ -130,12 +136,13 @@ public class POIsServiceImpl implements POIsService {
             pois = res.getJSONArray("pois");
         }
         int poi_num = Util.rand.nextInt(pois.size());
-        String poiid = parsePOIAndInsert(pois, poi_num);
+        String poiid = parsePOIAndInsert(pois, typeCode,poi_num);
         System.out.println("搜索半径是：" + radius);
+        System.out.println("搜索新POI 测试typeCode" + typeCode);
         System.out.println("新添加的POI的名字是" + findPOIByID(poiid).getPOITypeCode());
         return poiid;
     }
-    public String parsePOIAndInsert(JSONArray pois, int index){
+    public String parsePOIAndInsert(JSONArray pois, String typeCode,int index){
         var poi = pois.getJSONObject(index);
         String poiName = poi.get("name").toString();
         var poiid = poi.get("id").toString();
@@ -160,10 +167,13 @@ public class POIsServiceImpl implements POIsService {
             }
         }
         POIs poIs = new POIs(poiadCode,poiadName,poiCitycode,poiCityname,poiid, poiName, poiTypeName,
-                poiTypeCode, poilng,poilat,entrLng, entrLat,null,null);
-        if (poisDAO.findPOIByID(poIs.getPOIID()) != null) {
-        }else{
-            poisDAO.insertPOI(poIs);
+                typeCode, poilng,poilat,entrLng, entrLat,null,null);
+            System.out.println("要插新POI点了!" + poIs);
+            try{
+                poisDAO.insertPOI(poIs);
+            }catch (Exception e){
+                System.out.println(e.getMessage());
+            }
             String cityName = poIs.getCityName();
             String adName = poIs.getAdName();
             String adCode = poIs.getAdCode();
@@ -180,7 +190,6 @@ public class POIsServiceImpl implements POIsService {
                 cityAdCode += "00";
                 cityDAO.AddOnePOINumberByAdCode(cityAdCode);
             }
-        }
         return poIs.getPOIID();
     }
 }
