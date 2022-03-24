@@ -2573,3 +2573,312 @@
 2022-03-24 09:59:37.686  INFO 2728 --- [http-nio-8080-exec-1] c.t.t.Service.PathServiceImpl            : sentGetAndCombinationTrajectory https://restapi.amap.com/v5/direction/walking?parameters&key=192b951ff8bc56e05cb476f8740a760c&origin=120.491943,30.314322&destination=120.072339,30.323092&origin_id=B0FFK9J5KE&destination_idB0GRZA98GL&show_fields=cost,polyline
 2022-03-24 09:59:37.873  INFO 2728 --- [http-nio-8080-exec-1] c.t.t.Service.PathServiceImpl            : 前往重复的目标POI,名称是：金满府
 2022-03-24 09:59:37.873  INFO 2728 --- [http-nio-8080-exec-1] c.t.t.Service.PathServiceImpl            : sentGetAndCombinationTrajectory https://restapi.amap.com/v5/direction/walking?parameters&key=192b951ff8bc56e05cb476f8740a760c&origin=120.072339,30.323092&destination=120.462997,30.188539&origin_id=B0GRZA98GL&destination_idB0FFG6BGDH&show_fields=cost,polyline
+2022-03-24 16:21:59.713  WARN 2728 --- [http-nio-8080-exec-4] c.a.druid.pool.DruidAbstractDataSource   : discard long time none received connection. , jdbcUrl : jdbc:mysql://localhost:3306/tra?useUnicode=true&characterEncoding=utf-8&serverTimezone=GMT, version : 1.2.8, lastPacketReceivedIdleMillis : 157966
+2022-03-24 16:26:22.555  WARN 2728 --- [http-nio-8080-exec-7] c.a.druid.pool.DruidAbstractDataSource   : discard long time none received connection. , jdbcUrl : jdbc:mysql://localhost:3306/tra?useUnicode=true&characterEncoding=utf-8&serverTimezone=GMT, version : 1.2.8, lastPacketReceivedIdleMillis : 262811
+2022-03-24 16:54:59.226  INFO 2728 --- [SpringApplicationShutdownHook] com.alibaba.druid.pool.DruidDataSource   : {dataSource-1} closing ...
+2022-03-24 16:54:59.229  INFO 2728 --- [SpringApplicationShutdownHook] com.alibaba.druid.pool.DruidDataSource   : {dataSource-1} closed
+2022-03-24 16:55:08.922  INFO 21068 --- [main] t.TrajectoryGenerationPorjectApplication : Starting TrajectoryGenerationPorjectApplication using Java 11.0.14 on DESKTOP-VDQJSSK with PID 21068 (C:\Users\asd\IdeaProjects\TrajectoryGenerationPorject\target\classes started by asd in C:\Users\asd\IdeaProjects\TrajectoryGenerationPorject)
+2022-03-24 16:55:08.925  INFO 21068 --- [main] t.TrajectoryGenerationPorjectApplication : No active profile set, falling back to 1 default profile: "default"
+2022-03-24 16:55:10.199  INFO 21068 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8080 (http)
+2022-03-24 16:55:10.212  INFO 21068 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2022-03-24 16:55:10.213  INFO 21068 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.58]
+2022-03-24 16:55:10.345  INFO 21068 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2022-03-24 16:55:10.345  INFO 21068 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1367 ms
+2022-03-24 16:55:11.227  INFO 21068 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8080 (http) with context path ''
+2022-03-24 16:55:11.242  INFO 21068 --- [main] t.TrajectoryGenerationPorjectApplication : Started TrajectoryGenerationPorjectApplication in 2.93 seconds (JVM running for 3.955)
+2022-03-24 16:55:45.514  INFO 21068 --- [http-nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2022-03-24 16:55:45.516  INFO 21068 --- [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2022-03-24 16:55:45.517  INFO 21068 --- [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2022-03-24 16:55:45.629  INFO 21068 --- [http-nio-8080-exec-1] com.alibaba.druid.pool.DruidDataSource   : {dataSource-1} inited
+2022-03-24 16:57:24.670  WARN 21068 --- [http-nio-8080-exec-4] c.a.druid.pool.DruidAbstractDataSource   : discard long time none received connection. , jdbcUrl : jdbc:mysql://localhost:3306/tra?useUnicode=true&characterEncoding=utf-8&serverTimezone=GMT, version : 1.2.8, lastPacketReceivedIdleMillis : 98604
+2022-03-24 16:57:24.753 ERROR 21068 --- [http-nio-8080-exec-4] o.a.c.c.C.[.[.[/].[dispatcherServlet]    : Servlet.service() for servlet [dispatcherServlet] in context with path [] threw exception [Request processing failed; nested exception is java.lang.IndexOutOfBoundsException: Index 16 out of bounds for length 14] with root cause
+
+java.lang.IndexOutOfBoundsException: Index 16 out of bounds for length 14
+	at java.base/jdk.internal.util.Preconditions.outOfBounds(Preconditions.java:64) ~[na:na]
+	at java.base/jdk.internal.util.Preconditions.outOfBoundsCheckIndex(Preconditions.java:70) ~[na:na]
+	at java.base/jdk.internal.util.Preconditions.checkIndex(Preconditions.java:248) ~[na:na]
+	at java.base/java.util.Objects.checkIndex(Objects.java:372) ~[na:na]
+	at java.base/java.util.ArrayList.get(ArrayList.java:459) ~[na:na]
+	at com.trajectory.trajectorygenerationporject.Service.PathServiceImpl.choosePattern(PathServiceImpl.java:171) ~[classes/:na]
+	at com.trajectory.trajectorygenerationporject.Controllor.HelloWorldController.generate(HelloWorldController.java:162) ~[classes/:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62) ~[na:na]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566) ~[na:na]
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:205) ~[spring-web-5.3.16.jar:5.3.16]
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:150) ~[spring-web-5.3.16.jar:5.3.16]
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:117) ~[spring-webmvc-5.3.16.jar:5.3.16]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:895) ~[spring-webmvc-5.3.16.jar:5.3.16]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:808) ~[spring-webmvc-5.3.16.jar:5.3.16]
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87) ~[spring-webmvc-5.3.16.jar:5.3.16]
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1067) ~[spring-webmvc-5.3.16.jar:5.3.16]
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:963) ~[spring-webmvc-5.3.16.jar:5.3.16]
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006) ~[spring-webmvc-5.3.16.jar:5.3.16]
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:909) ~[spring-webmvc-5.3.16.jar:5.3.16]
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:681) ~[tomcat-embed-core-9.0.58.jar:4.0.FR]
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883) ~[spring-webmvc-5.3.16.jar:5.3.16]
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:764) ~[tomcat-embed-core-9.0.58.jar:4.0.FR]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:227) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:53) ~[tomcat-embed-websocket-9.0.58.jar:9.0.58]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:189) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at com.alibaba.druid.support.http.WebStatFilter.doFilter(WebStatFilter.java:124) ~[druid-1.2.8.jar:1.2.8]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:189) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100) ~[spring-web-5.3.16.jar:5.3.16]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117) ~[spring-web-5.3.16.jar:5.3.16]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:189) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93) ~[spring-web-5.3.16.jar:5.3.16]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117) ~[spring-web-5.3.16.jar:5.3.16]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:189) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201) ~[spring-web-5.3.16.jar:5.3.16]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117) ~[spring-web-5.3.16.jar:5.3.16]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:189) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:197) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:97) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:540) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:135) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:92) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:78) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:359) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:399) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:65) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:889) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1735) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:49) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at java.base/java.lang.Thread.run(Thread.java:834) ~[na:na]
+
+2022-03-24 16:59:59.792  INFO 21068 --- [SpringApplicationShutdownHook] com.alibaba.druid.pool.DruidDataSource   : {dataSource-1} closing ...
+2022-03-24 16:59:59.796  INFO 21068 --- [SpringApplicationShutdownHook] com.alibaba.druid.pool.DruidDataSource   : {dataSource-1} closed
+2022-03-24 17:00:05.969  INFO 15424 --- [main] t.TrajectoryGenerationPorjectApplication : Starting TrajectoryGenerationPorjectApplication using Java 11.0.14 on DESKTOP-VDQJSSK with PID 15424 (C:\Users\asd\IdeaProjects\TrajectoryGenerationPorject\target\classes started by asd in C:\Users\asd\IdeaProjects\TrajectoryGenerationPorject)
+2022-03-24 17:00:05.973  INFO 15424 --- [main] t.TrajectoryGenerationPorjectApplication : No active profile set, falling back to 1 default profile: "default"
+2022-03-24 17:00:07.151  INFO 15424 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8080 (http)
+2022-03-24 17:00:07.164  INFO 15424 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2022-03-24 17:00:07.165  INFO 15424 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.58]
+2022-03-24 17:00:07.292  INFO 15424 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2022-03-24 17:00:07.292  INFO 15424 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1264 ms
+2022-03-24 17:00:08.055  INFO 15424 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8080 (http) with context path ''
+2022-03-24 17:00:08.069  INFO 15424 --- [main] t.TrajectoryGenerationPorjectApplication : Started TrajectoryGenerationPorjectApplication in 2.688 seconds (JVM running for 3.635)
+2022-03-24 17:00:14.555  INFO 15424 --- [http-nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2022-03-24 17:00:14.556  INFO 15424 --- [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2022-03-24 17:00:14.557  INFO 15424 --- [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2022-03-24 17:00:14.824  INFO 15424 --- [http-nio-8080-exec-1] com.alibaba.druid.pool.DruidDataSource   : {dataSource-1} inited
+2022-03-24 17:00:15.270 ERROR 15424 --- [http-nio-8080-exec-1] o.a.c.c.C.[.[.[/].[dispatcherServlet]    : Servlet.service() for servlet [dispatcherServlet] in context with path [] threw exception [Request processing failed; nested exception is java.lang.IndexOutOfBoundsException: Index 16 out of bounds for length 14] with root cause
+
+java.lang.IndexOutOfBoundsException: Index 16 out of bounds for length 14
+	at java.base/jdk.internal.util.Preconditions.outOfBounds(Preconditions.java:64) ~[na:na]
+	at java.base/jdk.internal.util.Preconditions.outOfBoundsCheckIndex(Preconditions.java:70) ~[na:na]
+	at java.base/jdk.internal.util.Preconditions.checkIndex(Preconditions.java:248) ~[na:na]
+	at java.base/java.util.Objects.checkIndex(Objects.java:372) ~[na:na]
+	at java.base/java.util.ArrayList.get(ArrayList.java:459) ~[na:na]
+	at com.trajectory.trajectorygenerationporject.Service.PathServiceImpl.choosePattern(PathServiceImpl.java:171) ~[classes/:na]
+	at com.trajectory.trajectorygenerationporject.Controllor.HelloWorldController.generate(HelloWorldController.java:163) ~[classes/:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62) ~[na:na]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566) ~[na:na]
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:205) ~[spring-web-5.3.16.jar:5.3.16]
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:150) ~[spring-web-5.3.16.jar:5.3.16]
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:117) ~[spring-webmvc-5.3.16.jar:5.3.16]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:895) ~[spring-webmvc-5.3.16.jar:5.3.16]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:808) ~[spring-webmvc-5.3.16.jar:5.3.16]
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87) ~[spring-webmvc-5.3.16.jar:5.3.16]
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1067) ~[spring-webmvc-5.3.16.jar:5.3.16]
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:963) ~[spring-webmvc-5.3.16.jar:5.3.16]
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006) ~[spring-webmvc-5.3.16.jar:5.3.16]
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:909) ~[spring-webmvc-5.3.16.jar:5.3.16]
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:681) ~[tomcat-embed-core-9.0.58.jar:4.0.FR]
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883) ~[spring-webmvc-5.3.16.jar:5.3.16]
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:764) ~[tomcat-embed-core-9.0.58.jar:4.0.FR]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:227) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:53) ~[tomcat-embed-websocket-9.0.58.jar:9.0.58]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:189) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at com.alibaba.druid.support.http.WebStatFilter.doFilter(WebStatFilter.java:124) ~[druid-1.2.8.jar:1.2.8]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:189) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100) ~[spring-web-5.3.16.jar:5.3.16]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117) ~[spring-web-5.3.16.jar:5.3.16]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:189) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93) ~[spring-web-5.3.16.jar:5.3.16]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117) ~[spring-web-5.3.16.jar:5.3.16]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:189) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201) ~[spring-web-5.3.16.jar:5.3.16]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117) ~[spring-web-5.3.16.jar:5.3.16]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:189) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:197) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:97) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:540) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:135) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:92) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:78) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:359) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:399) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:65) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:889) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1735) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:49) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at java.base/java.lang.Thread.run(Thread.java:834) ~[na:na]
+
+2022-03-24 17:00:35.289  INFO 15424 --- [SpringApplicationShutdownHook] com.alibaba.druid.pool.DruidDataSource   : {dataSource-1} closing ...
+2022-03-24 17:00:35.294  INFO 15424 --- [SpringApplicationShutdownHook] com.alibaba.druid.pool.DruidDataSource   : {dataSource-1} closed
+2022-03-24 17:00:41.444  INFO 8716 --- [main] t.TrajectoryGenerationPorjectApplication : Starting TrajectoryGenerationPorjectApplication using Java 11.0.14 on DESKTOP-VDQJSSK with PID 8716 (C:\Users\asd\IdeaProjects\TrajectoryGenerationPorject\target\classes started by asd in C:\Users\asd\IdeaProjects\TrajectoryGenerationPorject)
+2022-03-24 17:00:41.448  INFO 8716 --- [main] t.TrajectoryGenerationPorjectApplication : No active profile set, falling back to 1 default profile: "default"
+2022-03-24 17:00:42.661  INFO 8716 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8080 (http)
+2022-03-24 17:00:42.674  INFO 8716 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2022-03-24 17:00:42.675  INFO 8716 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.58]
+2022-03-24 17:00:42.801  INFO 8716 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2022-03-24 17:00:42.802  INFO 8716 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1295 ms
+2022-03-24 17:00:43.570  INFO 8716 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8080 (http) with context path ''
+2022-03-24 17:00:43.582  INFO 8716 --- [main] t.TrajectoryGenerationPorjectApplication : Started TrajectoryGenerationPorjectApplication in 2.775 seconds (JVM running for 3.737)
+2022-03-24 17:00:48.262  INFO 8716 --- [http-nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2022-03-24 17:00:48.263  INFO 8716 --- [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2022-03-24 17:00:48.264  INFO 8716 --- [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2022-03-24 17:00:48.545  INFO 8716 --- [http-nio-8080-exec-1] com.alibaba.druid.pool.DruidDataSource   : {dataSource-1} inited
+2022-03-24 17:00:48.969 ERROR 8716 --- [http-nio-8080-exec-1] o.a.c.c.C.[.[.[/].[dispatcherServlet]    : Servlet.service() for servlet [dispatcherServlet] in context with path [] threw exception [Request processing failed; nested exception is java.lang.NullPointerException] with root cause
+
+java.lang.NullPointerException: null
+	at com.trajectory.trajectorygenerationporject.Controllor.HelloWorldController.generate(HelloWorldController.java:167) ~[classes/:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62) ~[na:na]
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566) ~[na:na]
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:205) ~[spring-web-5.3.16.jar:5.3.16]
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:150) ~[spring-web-5.3.16.jar:5.3.16]
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:117) ~[spring-webmvc-5.3.16.jar:5.3.16]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:895) ~[spring-webmvc-5.3.16.jar:5.3.16]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:808) ~[spring-webmvc-5.3.16.jar:5.3.16]
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87) ~[spring-webmvc-5.3.16.jar:5.3.16]
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1067) ~[spring-webmvc-5.3.16.jar:5.3.16]
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:963) ~[spring-webmvc-5.3.16.jar:5.3.16]
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006) ~[spring-webmvc-5.3.16.jar:5.3.16]
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:909) ~[spring-webmvc-5.3.16.jar:5.3.16]
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:681) ~[tomcat-embed-core-9.0.58.jar:4.0.FR]
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883) ~[spring-webmvc-5.3.16.jar:5.3.16]
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:764) ~[tomcat-embed-core-9.0.58.jar:4.0.FR]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:227) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:53) ~[tomcat-embed-websocket-9.0.58.jar:9.0.58]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:189) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at com.alibaba.druid.support.http.WebStatFilter.doFilter(WebStatFilter.java:124) ~[druid-1.2.8.jar:1.2.8]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:189) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100) ~[spring-web-5.3.16.jar:5.3.16]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117) ~[spring-web-5.3.16.jar:5.3.16]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:189) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93) ~[spring-web-5.3.16.jar:5.3.16]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117) ~[spring-web-5.3.16.jar:5.3.16]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:189) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201) ~[spring-web-5.3.16.jar:5.3.16]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117) ~[spring-web-5.3.16.jar:5.3.16]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:189) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:162) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:197) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:97) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:540) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:135) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:92) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:78) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:359) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:399) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:65) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:889) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1735) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:49) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61) ~[tomcat-embed-core-9.0.58.jar:9.0.58]
+	at java.base/java.lang.Thread.run(Thread.java:834) ~[na:na]
+
+2022-03-24 17:01:01.412  INFO 8716 --- [SpringApplicationShutdownHook] com.alibaba.druid.pool.DruidDataSource   : {dataSource-1} closing ...
+2022-03-24 17:01:01.417  INFO 8716 --- [SpringApplicationShutdownHook] com.alibaba.druid.pool.DruidDataSource   : {dataSource-1} closed
+2022-03-24 17:01:07.631  INFO 36364 --- [main] t.TrajectoryGenerationPorjectApplication : Starting TrajectoryGenerationPorjectApplication using Java 11.0.14 on DESKTOP-VDQJSSK with PID 36364 (C:\Users\asd\IdeaProjects\TrajectoryGenerationPorject\target\classes started by asd in C:\Users\asd\IdeaProjects\TrajectoryGenerationPorject)
+2022-03-24 17:01:07.634  INFO 36364 --- [main] t.TrajectoryGenerationPorjectApplication : No active profile set, falling back to 1 default profile: "default"
+2022-03-24 17:01:08.837  INFO 36364 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8080 (http)
+2022-03-24 17:01:08.848  INFO 36364 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2022-03-24 17:01:08.849  INFO 36364 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.58]
+2022-03-24 17:01:08.957  INFO 36364 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2022-03-24 17:01:08.957  INFO 36364 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1270 ms
+2022-03-24 17:01:09.673  INFO 36364 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8080 (http) with context path ''
+2022-03-24 17:01:09.686  INFO 36364 --- [main] t.TrajectoryGenerationPorjectApplication : Started TrajectoryGenerationPorjectApplication in 2.683 seconds (JVM running for 3.716)
+2022-03-24 17:01:20.564  INFO 36364 --- [http-nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2022-03-24 17:01:20.565  INFO 36364 --- [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2022-03-24 17:01:20.566  INFO 36364 --- [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2022-03-24 17:01:20.853  INFO 36364 --- [http-nio-8080-exec-1] com.alibaba.druid.pool.DruidDataSource   : {dataSource-1} inited
+2022-03-24 17:01:21.349  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.POIsServiceImpl            : 发送请求获得随机POI url:https://restapi.amap.com/v5/place/text?parameters&key=192b951ff8bc56e05cb476f8740a760c&types=050000&region=010&show_fields=navi&page_size=25&page_num=7
+2022-03-24 17:01:21.948  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.PathServiceImpl            : 起始点的位置是:金鼎鱼香
+2022-03-24 17:01:21.960  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.PathServiceImpl            : 限定范围的申请POIType:060300!
+当前的中心点是:116.864732,40.474164
+2022-03-24 17:01:21.970  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.POIsServiceImpl            : 发送请求依据距离获得随机POI url:https://restapi.amap.com/v5/place/around?parameters&key=192b951ff8bc56e05cb476f8740a760c&types=060300&region=010&location=116.864732,40.474164&radius=50000&city_limit=true&show_fields=navi&page_size=15&page_num=15
+2022-03-24 17:01:22.283  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.PathServiceImpl            : 一个新的目标POI名称是:中天手机当前预期的最大通勤距离是：50000
+2022-03-24 17:01:22.529  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.PathServiceImpl            : 限定范围的申请POIType:060100!
+当前的中心点是:116.788413,40.349251
+2022-03-24 17:01:22.530  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.POIsServiceImpl            : 发送请求依据距离获得随机POI url:https://restapi.amap.com/v5/place/around?parameters&key=192b951ff8bc56e05cb476f8740a760c&types=060100&region=010&location=116.788413,40.349251&radius=10000&city_limit=true&show_fields=navi&page_size=15&page_num=12
+2022-03-24 17:01:22.717  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.POIsServiceImpl            : 选到了空白页，重新发送请求.
+2022-03-24 17:01:22.897  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.POIsServiceImpl            : 选到了空白页，重新发送请求.
+2022-03-24 17:01:23.067  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.POIsServiceImpl            : 选到了空白页，重新发送请求.
+2022-03-24 17:01:23.255  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.POIsServiceImpl            : 选到了空白页，重新发送请求.
+2022-03-24 17:01:23.435  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.POIsServiceImpl            : 选到了空白页，重新发送请求.
+2022-03-24 17:01:23.664  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.PathServiceImpl            : 一个新的目标POI名称是:物美大卖场果园店(北门)当前预期的最大通勤距离是：10000
+2022-03-24 17:01:25.741  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.POIsServiceImpl            : 发送请求获得随机POI url:https://restapi.amap.com/v5/place/text?parameters&key=192b951ff8bc56e05cb476f8740a760c&types=050000&region=010&show_fields=navi&page_size=25&page_num=14
+2022-03-24 17:01:26.222  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.PathServiceImpl            : 起始点的位置是:北新桥卤煮老店景林餐厅总店
+2022-03-24 17:01:26.227  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.PathServiceImpl            : 限定范围的申请POIType:060300!
+当前的中心点是:116.416801,39.937226
+2022-03-24 17:01:26.228  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.POIsServiceImpl            : 发送请求依据距离获得随机POI url:https://restapi.amap.com/v5/place/around?parameters&key=192b951ff8bc56e05cb476f8740a760c&types=060300&region=010&location=116.416801,39.937226&radius=50000&city_limit=true&show_fields=navi&page_size=15&page_num=0
+2022-03-24 17:01:26.542  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.PathServiceImpl            : 一个新的目标POI名称是:小电(优客工场人美店)当前预期的最大通勤距离是：50000
+2022-03-24 17:01:26.543  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.PathServiceImpl            : sentGetAndCombinationTrajectory https://restapi.amap.com/v5/direction/walking?parameters&key=192b951ff8bc56e05cb476f8740a760c&origin=116.416801,39.937226&destination=116.417817,39.938875&origin_id=B000A7D9XS&destination_idB0G1Z44393&show_fields=cost,polyline
+2022-03-24 17:01:26.672  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.PathServiceImpl            : 限定范围的申请POIType:060100!
+当前的中心点是:116.417817,39.938875
+2022-03-24 17:01:26.672  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.POIsServiceImpl            : 发送请求依据距离获得随机POI url:https://restapi.amap.com/v5/place/around?parameters&key=192b951ff8bc56e05cb476f8740a760c&types=060100&region=010&location=116.417817,39.938875&radius=10000&city_limit=true&show_fields=navi&page_size=15&page_num=17
+2022-03-24 17:01:26.979  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.PathServiceImpl            : 一个新的目标POI名称是:北京SKP当前预期的最大通勤距离是：10000
+2022-03-24 17:01:28.558  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.POIsServiceImpl            : 发送请求获得随机POI url:https://restapi.amap.com/v5/place/text?parameters&key=192b951ff8bc56e05cb476f8740a760c&types=050000&region=010&show_fields=navi&page_size=25&page_num=7
+2022-03-24 17:01:29.167  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.PathServiceImpl            : 起始点的位置是:尚水长廊铁板烧餐厅(顺义店)
+2022-03-24 17:01:29.171  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.PathServiceImpl            : 限定范围的申请POIType:060300!
+当前的中心点是:116.547478,40.062399
+2022-03-24 17:01:29.171  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.POIsServiceImpl            : 发送请求依据距离获得随机POI url:https://restapi.amap.com/v5/place/around?parameters&key=192b951ff8bc56e05cb476f8740a760c&types=060300&region=010&location=116.547478,40.062399&radius=50000&city_limit=true&show_fields=navi&page_size=15&page_num=15
+2022-03-24 17:01:29.554  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.PathServiceImpl            : 一个新的目标POI名称是:惠普专卖店(苏宁易购望京店)当前预期的最大通勤距离是：50000
+2022-03-24 17:01:29.555  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.PathServiceImpl            : sentGetAndCombinationTrajectory https://restapi.amap.com/v5/direction/walking?parameters&key=192b951ff8bc56e05cb476f8740a760c&origin=116.547478,40.062399&destination=116.468228,40.006437&origin_id=B000AAEZZ0&destination_idB0FFH9D28H&show_fields=cost,polyline
+2022-03-24 17:01:29.700  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.PathServiceImpl            : 限定范围的申请POIType:060100!
+当前的中心点是:116.468228,40.006437
+2022-03-24 17:01:29.700  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.POIsServiceImpl            : 发送请求依据距离获得随机POI url:https://restapi.amap.com/v5/place/around?parameters&key=192b951ff8bc56e05cb476f8740a760c&types=060100&region=010&location=116.468228,40.006437&radius=10000&city_limit=true&show_fields=navi&page_size=15&page_num=8
+2022-03-24 17:01:29.997  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.PathServiceImpl            : 一个新的目标POI名称是:皇家鸡排(龙德广场店)当前预期的最大通勤距离是：10000
+2022-03-24 17:01:29.998  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.PathServiceImpl            : sentGetAndCombinationTrajectory https://restapi.amap.com/v5/direction/walking?parameters&key=192b951ff8bc56e05cb476f8740a760c&origin=116.468228,40.006437&destination=116.415939,40.060174&origin_id=B0FFH9D28H&destination_idB0HR6U9AA9&show_fields=cost,polyline
+2022-03-24 17:01:31.562  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.POIsServiceImpl            : 发送请求获得随机POI url:https://restapi.amap.com/v5/place/text?parameters&key=192b951ff8bc56e05cb476f8740a760c&types=050000&region=010&show_fields=navi&page_size=25&page_num=3
+2022-03-24 17:01:32.016  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.PathServiceImpl            : 起始点的位置是:南磨房食府
+2022-03-24 17:01:32.020  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.PathServiceImpl            : 限定范围的申请POIType:060300!
+当前的中心点是:116.489149,39.877967
+2022-03-24 17:01:32.020  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.POIsServiceImpl            : 发送请求依据距离获得随机POI url:https://restapi.amap.com/v5/place/around?parameters&key=192b951ff8bc56e05cb476f8740a760c&types=060300&region=010&location=116.489149,39.877967&radius=50000&city_limit=true&show_fields=navi&page_size=15&page_num=16
+2022-03-24 17:01:32.386  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.PathServiceImpl            : 一个新的目标POI名称是:苹果手机店当前预期的最大通勤距离是：50000
+2022-03-24 17:01:32.551  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.PathServiceImpl            : 限定范围的申请POIType:060000!
+当前的中心点是:116.455814,39.881839
+2022-03-24 17:01:32.551  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.POIsServiceImpl            : 发送请求依据距离获得随机POI url:https://restapi.amap.com/v5/place/around?parameters&key=192b951ff8bc56e05cb476f8740a760c&types=060000&region=010&location=116.455814,39.881839&radius=10000&city_limit=true&show_fields=navi&page_size=15&page_num=1
+2022-03-24 17:01:32.863  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.PathServiceImpl            : 一个新的目标POI名称是:京客隆超市(劲百店)当前预期的最大通勤距离是：10000
+2022-03-24 17:01:32.863  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.PathServiceImpl            : sentGetAndCombinationTrajectory https://restapi.amap.com/v5/direction/walking?parameters&key=192b951ff8bc56e05cb476f8740a760c&origin=116.455814,39.881839&destination=116.455749,39.884095&origin_id=B0FFJIFSIJ&destination_idB000A46E6E&show_fields=cost,polyline
+2022-03-24 17:01:34.216  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.POIsServiceImpl            : 发送请求获得随机POI url:https://restapi.amap.com/v5/place/text?parameters&key=192b951ff8bc56e05cb476f8740a760c&types=050000&region=010&show_fields=navi&page_size=25&page_num=0
+2022-03-24 17:01:34.628  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.PathServiceImpl            : 起始点的位置是:长城饭店
+2022-03-24 17:01:34.631  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.PathServiceImpl            : 限定范围的申请POIType:060300!
+当前的中心点是:116.463506,39.944702
+2022-03-24 17:01:34.632  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.POIsServiceImpl            : 发送请求依据距离获得随机POI url:https://restapi.amap.com/v5/place/around?parameters&key=192b951ff8bc56e05cb476f8740a760c&types=060300&region=010&location=116.463506,39.944702&radius=50000&city_limit=true&show_fields=navi&page_size=15&page_num=19
+2022-03-24 17:01:34.974  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.PathServiceImpl            : 一个新的目标POI名称是:BOSE(北京国贸商城店)当前预期的最大通勤距离是：50000
+2022-03-24 17:01:35.155  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.PathServiceImpl            : 限定范围的申请POIType:060100!
+当前的中心点是:116.459401,39.912436
+2022-03-24 17:01:35.156  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.POIsServiceImpl            : 发送请求依据距离获得随机POI url:https://restapi.amap.com/v5/place/around?parameters&key=192b951ff8bc56e05cb476f8740a760c&types=060100&region=010&location=116.459401,39.912436&radius=10000&city_limit=true&show_fields=navi&page_size=15&page_num=12
+2022-03-24 17:01:35.465  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.PathServiceImpl            : 一个新的目标POI名称是:四季商业中心当前预期的最大通勤距离是：10000
+2022-03-24 17:01:35.668  INFO 36364 --- [http-nio-8080-exec-1] c.t.t.Service.PathServiceImpl            : 前往重复的目标POI,名称是：长城饭店

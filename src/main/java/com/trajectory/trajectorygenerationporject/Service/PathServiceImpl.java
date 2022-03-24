@@ -165,6 +165,12 @@ public class PathServiceImpl implements PathService {
         Util.outputtheTrajectoryPOIS(thisPathPOIs,index);
         return res;
     }
+
+    @Override
+    public Integer choosePattern(Integer patternRateNum, List<Integer> patternChooser) {
+        return patternChooser.get(rand.nextInt(patternRateNum));
+    }
+
     public String getTypeCodeByCurMap(Map<String, Integer> curMap){
         return curMap.keySet().toArray()[0].toString();
     }

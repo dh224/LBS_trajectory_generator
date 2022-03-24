@@ -54,6 +54,9 @@ public class HelloWorldController {
     @ResponseBody()
     @PostMapping("/generate")
     public String generate(@RequestBody JSONObject post) throws IOException {
+        int longRange = 20000;
+        int midRange = 10000;
+        int shortRange = 3000;
         String pName = post.get("pname").toString();
         String cityName = post.get("cityname").toString();
         if(pName.equals("北京市") || pName.equals("上海市") || pName.equals("重庆市")|| pName.equals("天津市")){
@@ -90,9 +93,9 @@ public class HelloWorldController {
                     String commuteString = ((JSONObject) onePatternWorkdayPattern.get(k)).get("commute").toString();
                     int radius = 50000;
                     if(commuteString.equals("不限")){
-                    }else if(commuteString.equals("长距离")) radius = 20000;
-                    else if(commuteString.equals("中距离")) radius = 10000;
-                    else if(commuteString.equals("短距离")) radius = 5000;
+                    }else if(commuteString.equals("长距离")) radius = longRange;
+                    else if(commuteString.equals("中距离")) radius = midRange;
+                    else if(commuteString.equals("短距离")) radius = shortRange;
 
                     int stTime = Integer.valueOf(timeQuantum.getString("startTime").substring(0,2));
                     int edTime = Integer.valueOf(timeQuantum.getString("endTime").substring(0,2));
@@ -119,7 +122,7 @@ public class HelloWorldController {
                     JSONObject timeQuantum = (JSONObject) onePatternNoworkdayPattern.get(k);
                     JSONArray tempTypeCode = ((JSONObject) onePatternNoworkdayPattern.get(k)).getJSONArray("value");
                     String commuteString = ((JSONObject) onePatternNoworkdayPattern.get(k)).get("commute").toString();
-                    int radius = 50000;
+                    int radius = 50001;
                     if(commuteString.equals("不限")){
                     }else if(commuteString.equals("长距离")) radius = 20000;
                     else if(commuteString.equals("中距离")) radius = 10000;
@@ -144,20 +147,32 @@ public class HelloWorldController {
             }
             patternsList.add(pattern);
         }
-//        int TrajectoryRateNum = 0;
-//        for(int i =0; i < patternsAttributeList.size(); i++){
-//            TrajectoryRateNum += Integer.parseInt(patternsAttributeList.get(i).get("patternrate").toString());
-//        }
+        int TrajectoryRateNum = 0;
+        List<Integer> patternChooser = new ArrayList<>();
+        for(int i =0; i < patternsAttributeList.size(); i++){
+            int singlePatternRate =  Integer.parseInt(patternsAttributeList.get(i).get("patternrate").toString());
+            for(int j = 0; j < singlePatternRate; j++){
+                patternChooser.add(i);
+            }
+            System.out.println("当前的patternrate为："+ singlePatternRate);
+            TrajectoryRateNum += singlePatternRate;
+        }
         System.out.println("pattern:" + patternsList);
         List<Trajectory> res = new ArrayList<>();
         for(int i = 0; i < trajectoryNum; i ++){
-            int num = Util.rand.nextInt(patternsList.size());
+            int num  = pathService.choosePattern(TrajectoryRateNum, patternChooser);
             int maxage = Integer.parseInt(patternsAttributeList.get(num).get("maxage").toString());
             int minAge = Integer.parseInt(patternsAttributeList.get(num).get("minage").toString());
+            int drivingRate = Integer.parseInt(patternsAttributeList.get(num).get("drivingrate").toString());
+            int genderRate = Integer.parseInt(patternsAttributeList.get(num).get("genderrate").toString());
+            String gender = "FM";
+            if(Util.rand.nextInt(10) > genderRate){
+                gender = "M";
+            }
             var pattern = patternsList.get(num);
             String TraName = patternsAttributeList.get(num).get("patternname").toString();
             int randomage = Util.rand.nextInt(maxage - minAge + 1) + minAge;
-            Trajectory trajectory = pathService.getTrajectory(cityName,cityName,startTime, endTime,pattern, false, randomage, "学生","M", true, "疫苗",5,9,TraName+ i+"POIs");
+            Trajectory trajectory = pathService.getTrajectory(cityName,cityName,startTime, endTime,pattern, false, randomage, "学生",gender, true, "疫苗",drivingRate,9,TraName+ i+"POIs");
             Util.outputtheTrajectory(trajectory, TraName + i) ;
         }
         return "已生成" + trajectoryNum + "个轨迹";
