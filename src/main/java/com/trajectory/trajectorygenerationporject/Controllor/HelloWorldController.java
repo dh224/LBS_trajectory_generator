@@ -54,9 +54,9 @@ public class HelloWorldController {
     @ResponseBody()
     @PostMapping("/generate")
     public String generate(@RequestBody JSONObject post) throws IOException {
-        int longRange = 20000;
-        int midRange = 10000;
-        int shortRange = 3000;
+        int longCommuteRange = 20000;
+        int midCommuteRange = 10000;
+        int shortCommuteRange = 3000;
         String pName = post.get("pname").toString();
         String cityName = post.get("cityname").toString();
         if(pName.equals("北京市") || pName.equals("上海市") || pName.equals("重庆市")|| pName.equals("天津市")){
@@ -67,6 +67,9 @@ public class HelloWorldController {
         System.out.println(post);
         String startTime = post.get("starttime").toString();
         String endTime = post.get("endtime").toString();
+        longCommuteRange =Integer.valueOf( post.get("longcommuterange").toString());
+        midCommuteRange =Integer.valueOf( post.get("midcommuterange").toString());
+        shortCommuteRange =Integer.valueOf( post.get("shortcommuterange").toString());
         String temp =JSONArray.toJSONString(post.get("pattern"));
         JSONArray patterns = JSON.parseArray(temp);
         List<List<Map<Integer, List<Map<String, Integer>>>>> patternsList = new ArrayList<>();
@@ -93,9 +96,9 @@ public class HelloWorldController {
                     String commuteString = ((JSONObject) onePatternWorkdayPattern.get(k)).get("commute").toString();
                     int radius = 50000;
                     if(commuteString.equals("不限")){
-                    }else if(commuteString.equals("长距离")) radius = longRange;
-                    else if(commuteString.equals("中距离")) radius = midRange;
-                    else if(commuteString.equals("短距离")) radius = shortRange;
+                    }else if(commuteString.equals("长距离")) radius = longCommuteRange;
+                    else if(commuteString.equals("中距离")) radius = midCommuteRange;
+                    else if(commuteString.equals("短距离")) radius = shortCommuteRange;
 
                     int stTime = Integer.valueOf(timeQuantum.getString("startTime").substring(0,2));
                     int edTime = Integer.valueOf(timeQuantum.getString("endTime").substring(0,2));
