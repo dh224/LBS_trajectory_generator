@@ -283,5 +283,4 @@ public class HelloWorldController {
         Util.outputtheTrajectory(trajectory, "tra");
         return "1";
     }
-
 }

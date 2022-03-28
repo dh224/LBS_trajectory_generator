@@ -150,7 +150,10 @@ public class PathServiceImpl implements PathService {
                             System.out.println("新设置当前点为：" + nextPoi.getPOITypeCode());
                             curPositionType = nextPoi.getPOITypeCode();
                         }else{
-                            LocalDateTime temp = sentGetAndCombinationTrajectoryWithWalkingmode(curPoi, nextPoi, res, curTime); // 出发！
+                            LocalDateTime temp;
+                            if(isBycycling(curPoi, nextPoi, 3)){
+                                temp = sentGetAndCombinationTrajectoryWithBicyclingmode(curPoi, nextPoi, res, curTime);
+                            }else temp = sentGetAndCombinationTrajectoryWithWalkingmode(curPoi, nextPoi, res, curTime); // 出发！
                             if(temp != null) curTime = temp;
                             else curTime = sentGetAndCombinationTrajectoryWithDrivingmode(curPoi, nextPoi, res, curTime); // 出发！
                             System.out.println("新设置当前点为：" + nextPoi.getPOITypeCode());
@@ -171,18 +174,34 @@ public class PathServiceImpl implements PathService {
         return patternChooser.get(rand.nextInt(patternRateNum));
     }
 
+    private boolean isBycycling(POIs curPoi, POIs nextPoi, int rate){
+        double distance = Util.getDistance(curPoi.getLng(), curPoi.getLat(), nextPoi.getLng(), nextPoi.getLat());
+        boolean isbycycling = false;
+        if(distance / 2000.0 > 1){
+            if(rate / (distance / 2000.0) > rand.nextInt(10)){
+                isbycycling = true;
+            }
+        }else{
+            double a = 10 - distance / 2000.0 * 10;
+            if(rate > a + rand.nextInt(10)){
+                isbycycling = true;
+            }
+        }
+        return isbycycling;
+    }
+
     public String getTypeCodeByCurMap(Map<String, Integer> curMap){
         return curMap.keySet().toArray()[0].toString();
     }
     public boolean isDriving(POIs curPoi, POIs nextPoi, int rate){
         double distance = Util.getDistance(curPoi.getLng(), curPoi.getLat(), nextPoi.getLng(), nextPoi.getLat());
         boolean isDriving = false;
-        if(distance / 2000.0 > 1){
-            if(rate/(distance / 2000.0) > rand.nextInt(10)){
+        if(distance / 5000 > 1){
+            if(rate/(distance / 5000) > rand.nextInt(10)){
                 isDriving = true;
             }
         }else{
-            double a = 10 - distance / 2000.0 * 10;
+            double a = 10 - distance / 5000 * 10;
             if(rate > a +  rand.nextInt(10)){
                 isDriving = true;
             }
@@ -222,6 +241,25 @@ public class PathServiceImpl implements PathService {
         curTime = addPositionFromOriginPath(originPath,curTime,  5, res); //此时curTime为最后一点的时间，即到达时间.
         return curTime;
     }
+
+    public LocalDateTime sentGetAndCombinationTrajectoryWithBicyclingmode(POIs curPOI, POIs nextPOI, Trajectory res, LocalDateTime curTime) throws IOException {
+        double distance = Util.getDistance(curPOI.getLng(), curPOI.getLat(), nextPOI.getLng(), nextPOI.getLat());
+        String startLL = curPOI.getLng() + "," + curPOI.getLat();
+        String endLL = nextPOI.getLng() + "," + nextPOI.getLat();
+        String url = "https://restapi.amap.com/v5/direction/" + "bicycling" + "?parameters&key=192b951ff8bc56e05cb476f8740a760c&origin="
+                + startLL + "&destination=" + endLL + "&origin_id=" + curPOI.getPOIID() + "&destination_id" + nextPOI.getPOIID() +
+                "&show_fields=cost,polyline";
+        this.log.info("sentGetAndCombinationTrajectory " + url);
+        JSONObject singlePath =  Util.sentGet(url);
+        if(singlePath.get("status").toString().equals("0")){
+            return null;
+        }
+        OriginPath originPath = getOriginPathFromJSON(singlePath, "bicycling");
+        //Util.outputtheOriginPath(originPath, curTime.getDayOfWeek().toString() + "D" + curTime.getHour() + "H" + curTime.getMinute() + "M" + curTime.getSecond());
+        curTime = addPositionFromOriginPath(originPath,curTime,  5, res); //此时curTime为最后一点的时间，即到达时间.
+        return curTime;
+    }
+
     public LocalDateTime sentGetAndCombinationTrajectory(POIs curPOI, POIs nextPOI, Trajectory res, int drivingRate, LocalDateTime curTime) throws IOException {
         double distance = Util.getDistance(curPOI.getLng(), curPOI.getLat(), nextPOI.getLng(), nextPOI.getLat());
         boolean isDriving = false;

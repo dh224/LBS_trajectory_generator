@@ -101,11 +101,15 @@ public class Util {
         XSSFWorkbook workbook=new XSSFWorkbook();//这里也可以设置sheet的Name
         //创建工作表对象
         XSSFSheet sheet = workbook.createSheet();
+        XSSFRow row = sheet.createRow(0);
+        row.createCell(2).setCellValue(trajectory.age);//第一行第一列为日期
+        row.createCell(3).setCellValue(trajectory.sex);//第一行第一列为日期
         for(int i = 0; i < trajectory.path.size(); i ++){
             //创建工作表的行
-            XSSFRow row = sheet.createRow(i);//设置第一行，从零开始
+            row = sheet.createRow(i+1);//设置第一行，从零开始
             row.createCell(0).setCellValue("[" + trajectory.path.get(i).getLng()+ "," + trajectory.path.get(i).getLat() +  "],");//第一行第三列为aaaaaaaaaaaa
             row.createCell(1).setCellValue(String.valueOf(trajectory.timeLine.get(i)));//第一行第一列为日期
+            row.createCell(4).setCellValue(trajectory.path.get(i).getTypeCode());//第一行第一列为日期
         }
         //文档输出
         System.out.println("生成轨迹");
