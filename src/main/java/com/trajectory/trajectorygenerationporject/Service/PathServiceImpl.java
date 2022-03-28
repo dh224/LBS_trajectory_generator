@@ -48,6 +48,7 @@ public class PathServiceImpl implements PathService {
     public Trajectory getTrajectory(String cityName, String adName, String startT, String endT, List<Map<Integer, List<Map<String, Integer>>>> pattern, boolean isRestrict, int age, String job, String sex, boolean isMask, String Vaccines, int drivingRate, int commutingTimeRate,String index) throws IOException {
         //要求起始值和结束的时间为整小时。
         System.out.println("list::" + pattern);
+        boolean isKeepStayPoint = false;
         System.out.println(startT);
         System.out.println(endT);
         var dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -82,20 +83,20 @@ public class PathServiceImpl implements PathService {
                 }else{
                     System.out.println("当前列表中已经有了typecode了");
                     var nextHourTime = curTime.plusHours(1).minusSeconds(curTime.getMinute());
-                    curTime = pathStayAwhile(curTime, nextHourTime, thisPathPOIs.get(curPositionType),res);
+                    curTime = pathStayAwhile(curTime, nextHourTime, thisPathPOIs.get(curPositionType),res,isKeepStayPoint);
                 }
             }else{ //需要进行移动.
                 //进行随机的停留时间，增加真实性。
                 var RTGTime = curTime.plusMinutes(rand.nextInt(maxRandomStayTime));
                 System.out.println(thisPathPOIs + curPositionType);
                 System.out.println("需要进行移动" + curDayPattern.get(curTimeOfHour) + "curpoiType:" + curPositionType);
-                curTime = pathStayAwhile(curTime, RTGTime, thisPathPOIs.get(curPositionType),res);
+                curTime = pathStayAwhile(curTime, RTGTime, thisPathPOIs.get(curPositionType),res,isKeepStayPoint);
                 curTimeOfHour = curTime.getHour(); // 更新小时
                 curDayPattern = pattern.get(curTime.getDayOfWeek().getValue() - 1); //更新日行为模式，以防等待后进入下一天.
                 //curDayPattern.get(curTimeOfHour).contains(curPositionType)
                 if(Util.isHaveTypeCode(curPositionType,curDayPattern.get(curTimeOfHour))){ //避免在等待后进入下一个时间段，并且下一个时间段应处位置等同于当前位置。
                     var nextHourTime = curTime.plusHours(1).minusSeconds(curTime.getMinute());
-                    curTime = pathStayAwhile(curTime, nextHourTime,thisPathPOIs.get(curPositionType),res);//相当于又等到下个小时.
+                    curTime = pathStayAwhile(curTime, nextHourTime,thisPathPOIs.get(curPositionType),res,isKeepStayPoint);//相当于又等到下个小时.
                 }else{ //确保会前往下一个地点
                     Map<String, Integer> targetPositionTypeMap;
                     String targetPositionType;
@@ -178,7 +179,7 @@ public class PathServiceImpl implements PathService {
         double distance = Util.getDistance(curPoi.getLng(), curPoi.getLat(), nextPoi.getLng(), nextPoi.getLat());
         boolean isbycycling = false;
         if(distance / 2000.0 > 1){
-            if(rate / (distance / 2000.0) > rand.nextInt(10)){
+            if((double)rate / (distance / 2000.0) > rand.nextInt(10)){
                 isbycycling = true;
             }
         }else{
@@ -301,13 +302,23 @@ public class PathServiceImpl implements PathService {
         }
     }
 
-    public LocalDateTime pathStayAwhile(LocalDateTime startTime, LocalDateTime endTime, POIs poi,Trajectory res){
-        System.out.println("pathStay" + poi.getPOIName());
-
-        while(startTime.plusSeconds(5).compareTo(endTime) < 0){
-            var temp = new Position(poi.getLng(), poi.getLat(),poi.getPOITypeCode());
-            res.addPathWithTimeline(temp,startTime);
-            startTime = startTime.plusSeconds(5);
+    public LocalDateTime pathStayAwhile(LocalDateTime startTime, LocalDateTime endTime, POIs poi,Trajectory res, boolean isKeepStayPoint){
+        LocalDateTime pointer = startTime;
+        if(isKeepStayPoint){
+            while(startTime.plusSeconds(5).compareTo(endTime) < 0){
+                var temp = new Position(poi.getLng(), poi.getLat(),poi.getPOITypeCode());
+                res.addPathWithTimeline(temp,startTime);
+                startTime = startTime.plusSeconds(5);
+            }
+        }else{
+            // 仅保留开始点和最后一点
+            while(startTime.plusSeconds(5).compareTo(endTime) < 0){
+                if(startTime.isEqual(pointer) || startTime.isEqual(endTime)){
+                    var temp = new Position(poi.getLng(), poi.getLat(),poi.getPOITypeCode());
+                    res.addPathWithTimeline(temp,startTime);
+                }
+                    startTime = startTime.plusSeconds(5);
+            }
         }
         return startTime;
     }
