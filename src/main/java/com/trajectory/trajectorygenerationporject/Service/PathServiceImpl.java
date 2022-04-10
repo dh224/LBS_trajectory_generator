@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -39,13 +40,8 @@ public class PathServiceImpl implements PathService {
         }
         return null;
     }
-
-
-
-
-
     @Override
-    public Trajectory getTrajectory(String cityName, String adName, String startT, String endT, List<Map<Integer, List<Map<String, Integer>>>> pattern, boolean isRestrict, int age, String job, String sex, boolean isMask, String Vaccines, int drivingRate, int commutingTimeRate,String index) throws IOException {
+    public Trajectory getTrajectory(String patternName, String cityName, String adName, String startT, String endT, List<Map<Integer, List<Map<String, Integer>>>> pattern, boolean isRestrict, int age, String job, String sex, int maskRate, String Vaccines, int drivingRate, int commutingTimeRate,String index) throws IOException {
         //要求起始值和结束的时间为整小时。
         System.out.println("list::" + pattern);
         boolean isKeepStayPoint = false;
@@ -56,7 +52,7 @@ public class PathServiceImpl implements PathService {
         var startTime = LocalDateTime.parse(startT,dateFormatter);
         var endTime = LocalDateTime.parse(endT, dateFormatter);
         String cityCode = cityDAO.findCityCodeByAdCode(cityDAO.findAdCodeByCityNameAndAdname(cityName, adName));
-        Trajectory res = new Trajectory(age, job, sex, isMask, Vaccines);
+        Trajectory res = new Trajectory(patternName, pattern, age, job, sex, 8, Vaccines, drivingRate);
         Map<String, POIs> thisPathPOIs = new HashMap<>();
         var curTime = startTime; //设置当前时间，在接下去的循环中会更新它
         int startdayofweek = curTime.getDayOfWeek().getValue() - 1; //初始日期是星期几 由于是list存储，因此需要-1
@@ -128,6 +124,7 @@ public class PathServiceImpl implements PathService {
                         String targetPOIID;
                         POIs curPoi = thisPathPOIs.get(curPositionType);
                         Position curPoiPosition = new Position(curPoi.getLng(), curPoi.getLat(), curPoi.getPOITypeCode());
+                        curPoiPosition.setPoiid(curPoi.getPOIID());
                         if(commutingTimeRate < 5){
                             //只考虑类别和城市，可能会导致大范围通勤
                             System.out.println("直接申请的POI");
@@ -152,7 +149,7 @@ public class PathServiceImpl implements PathService {
                             curPositionType = nextPoi.getPOITypeCode();
                         }else{
                             LocalDateTime temp;
-                            if(isBycycling(curPoi, nextPoi, 3)){
+                            if(isBycycling(curPoi, nextPoi, 4)){
                                 temp = sentGetAndCombinationTrajectoryWithBicyclingmode(curPoi, nextPoi, res, curTime);
                             }else temp = sentGetAndCombinationTrajectoryWithWalkingmode(curPoi, nextPoi, res, curTime); // 出发！
                             if(temp != null) curTime = temp;
@@ -183,8 +180,7 @@ public class PathServiceImpl implements PathService {
                 isbycycling = true;
             }
         }else{
-            double a = 10 - distance / 2000.0 * 10;
-            if(rate > a + rand.nextInt(10)){
+            if(rate > rand.nextInt(10)){
                 isbycycling = true;
             }
         }
@@ -307,7 +303,8 @@ public class PathServiceImpl implements PathService {
         if(isKeepStayPoint){
             while(startTime.plusSeconds(5).compareTo(endTime) < 0){
                 var temp = new Position(poi.getLng(), poi.getLat(),poi.getPOITypeCode());
-                res.addPathWithTimeline(temp,startTime);
+                temp.setPoiid(poi.getPOIID());
+                res.addPositionWithTimeline(temp,startTime);
                 startTime = startTime.plusSeconds(5);
             }
         }else{
@@ -315,7 +312,8 @@ public class PathServiceImpl implements PathService {
             while(startTime.plusSeconds(5).compareTo(endTime) < 0){
                 if(startTime.isEqual(pointer) || startTime.isEqual(endTime)){
                     var temp = new Position(poi.getLng(), poi.getLat(),poi.getPOITypeCode());
-                    res.addPathWithTimeline(temp,startTime);
+                    temp.setPoiid(poi.getPOIID());
+                    res.addPositionWithTimeline(temp,startTime);
                 }
                     startTime = startTime.plusSeconds(5);
             }
@@ -330,7 +328,7 @@ public class PathServiceImpl implements PathService {
             Position startPosition = new Position(originPath.getStep_polyLine().get(i).get(0).getLng(),
                     originPath.getStep_polyLine().get(i).get(0).getLat(),
                     originPath.getStep_polyLine().get(i).get(0).getTypeCode());
-            res.addPathWithTimeline(startPosition, startTime);
+            res.addPositionWithTimeline(startPosition, startTime);
             int stepDur = originPath.getStep_duration().get(i); //获得当前分段的总耗时
             LocalDateTime stepEndTime = startTime.plusSeconds(stepDur);
             startTime = startTime.plusSeconds(d);
@@ -343,11 +341,11 @@ public class PathServiceImpl implements PathService {
                             originPath.getStep_polyLine().get(i).get(j).getLat(),
                             originPath.getMode());
                     if(originPath.getStep_polyLine().get(i).size() - 1 == j){ // 到了分段的最后一点
-                        res.addPathWithTimeline(tempPosition,stepEndTime);
+                        res.addPositionWithTimeline(tempPosition,stepEndTime);
                         startTime = stepEndTime.plusSeconds(d);
                         break;
                     }else{
-                        res.addPathWithTimeline(tempPosition, startTime);
+                        res.addPositionWithTimeline(tempPosition, startTime);
                         startTime = startTime.plusSeconds(d);
                     }
                 }
@@ -367,7 +365,7 @@ public class PathServiceImpl implements PathService {
                                     originPath.getStep_polyLine().get(i).get(k).getLat(),
                                     originPath.getStep_polyLine().get(i).get(k).getTypeCode());
                             startTime = stepEndTime;
-                            res.addPathWithTimeline(lastPosition,startTime); // 插入最后一点
+                            res.addPositionWithTimeline(lastPosition,startTime); // 插入最后一点
                             startTime = startTime.plusSeconds(d);
                             isInsertLast = true;
                             break;
@@ -377,7 +375,7 @@ public class PathServiceImpl implements PathService {
                             var tempLL = Util.getMidLL(last.getLng(), last.getLat(), originPath.getStep_polyLine().get(i).get(k).getLng(),
                                     originPath.getStep_polyLine().get(i).get(k).getLat(), rate);
                             Position insertPosition = new Position(tempLL.get(0).toString(), tempLL.get(1).toString(), originPath.getMode());
-                            res.addPathWithTimeline(insertPosition, startTime);
+                            res.addPositionWithTimeline(insertPosition, startTime);
                             startTime = startTime.plusSeconds(d);
                             stepLong = stepForward; // 恢复步长
                             last = insertPosition; // 更新当前位置
@@ -396,7 +394,7 @@ public class PathServiceImpl implements PathService {
                             var tempLL = Util.getMidLL(last.getLng(), last.getLat(), originPath.getStep_polyLine().get(i).get(k).getLng(),
                                     originPath.getStep_polyLine().get(i).get(k).getLat(), rate);
                             Position insertPosition = new Position(tempLL.get(0).toString(), tempLL.get(1).toString(), originPath.getMode());
-                            res.addPathWithTimeline(insertPosition, startTime);
+                            res.addPositionWithTimeline(insertPosition, startTime);
                             startTime = startTime.plusSeconds(d);
                             stepLong = stepForward; // 恢复步长
                             last = insertPosition; // 更新当前位置
@@ -408,7 +406,7 @@ public class PathServiceImpl implements PathService {
                             originPath.getStep_polyLine().get(i).get(k).getLat(),
                             originPath.getStep_polyLine().get(i).get(k).getTypeCode());
                     startTime = stepEndTime;
-                    res.addPathWithTimeline(lastPosition,startTime); // 插入最后一点
+                    res.addPositionWithTimeline(lastPosition,startTime); // 插入最后一点
                     startTime = startTime.plusSeconds(d);
                 }
             }
@@ -443,5 +441,319 @@ public class PathServiceImpl implements PathService {
             originPath.setSize(originPath.getSize() + 1);
         }
         return originPath;
+    }
+    @Override
+    public void getTrajectoryAndSimulation(List<Trajectory> trajectories, int R0, String startT, String endT){
+        var dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        double virusS = 0.5;
+        var startTime = LocalDateTime.parse(startT,dateFormatter);
+        var endTime = LocalDateTime.parse(endT, dateFormatter);
+        var trajectoriesSize = trajectories.size();
+        int fangcha = R0 - 1;
+        List<Integer> latestPosition = new ArrayList<>();
+        for(int i = 0; i < trajectoriesSize; i ++){
+            latestPosition.add(0);
+        }
+        for(int i = 0; i < trajectoriesSize; i++){ //init
+//            int virusNum = Util.getNormalRand(5,3);
+//            if(rand.nextInt(100) > 98){
+//                virusNum = Util.getNormalRand(50,30);
+//            }
+            trajectories.get(i).setVirusNum(0);
+            trajectories.get(i).setId(i);
+            trajectories.get(i).setState(Trajectory.State.S);
+            latestPosition.add(0);
+        }
+        LocalDateTime curTime = startTime;
+        getSensiableToExposureAtfirst(trajectories.get(2), curTime);
+        getSensiableToExposureAtfirst(trajectories.get(5), curTime);
+        getSensiableToExposureAtfirst(trajectories.get(10), curTime);
+        getSensiableToExposureAtfirst(trajectories.get(19), curTime);
+        getSensiableToExposureAtfirst(trajectories.get(13), curTime);
+        while(curTime.compareTo(endTime) < 0){
+            //模拟疫情
+            List<Integer> visitedTra = new ArrayList<>();
+            List<Integer> unInfectedIdList = new ArrayList<>();
+            List<Integer> infectedIdList = new ArrayList<>();
+            // 更新所有感染状态
+            for(int i = 0; i < trajectoriesSize; i ++){
+                var tra = trajectories.get(i);
+                if(trajectories.get(i).state == Trajectory.State.S){
+                    unInfectedIdList.add((trajectories.get(i).getId()));
+                }else if(tra.state == Trajectory.State.E){
+                    if(tra.infectedTime.compareTo(curTime) < 0){
+                        //说明到达发病时间了
+                        if(tra.isAsym == true){
+                            tra.state = Trajectory.State.A;
+                        }else{
+                            tra.state = Trajectory.State.I;
+                        }
+                        unInfectedIdList.add(tra.getId());
+                    }
+                }else if(tra.state == Trajectory.State.A || tra.state == Trajectory.State.I){
+                    if(tra.recoverTime.compareTo(curTime) < 0){
+                        tra.state = Trajectory.State.R;
+                        infectedIdList.add(tra.getId());
+                    }else{
+                        infectedIdList.add(tra.getId());
+                    }
+                }else{
+                    // 说明是康复者
+                    unInfectedIdList.add(tra.getId());
+                }
+            }
+            // 模拟通勤传染
+            for(int i = 0; i < unInfectedIdList.size(); i++){
+                Trajectory temp = trajectories.get(unInfectedIdList.get(i));
+                if(temp.path.get(latestPosition.get(temp.id)).isInPoi()){
+                }else{
+                    List<Integer> aroundInfectedTra = new ArrayList<>();
+                    if(temp.path.get(latestPosition.get(temp.id)).typeCode.equals("driving")){
+                        //驾车的人不考虑传染，因为我们假设车内只有一人.
+                    }
+                    else{
+                        aroundInfectedTra = getAroundTraInCommute(trajectories, temp, infectedIdList, latestPosition);
+                        if(aroundInfectedTra.isEmpty()){
+                            //如果没有，说明周围已经没有感染者了，需要进行判定。
+                            if(temp.isInContacted == true){
+                                if(isInfectedInCommute(temp, curTime)){
+                                    temp.state = Trajectory.State.E;
+                                    temp.infectedBy = temp.maxVirusNumIdInContact;
+                                    temp.exposureTime = temp.lastContactTime;
+                                    long hours = Util.getNormalRand(72,48);
+                                    long recoverHours = Util.getNormalRand(170, 96);
+                                    temp.infectedTime = temp.exposureTime.plusHours(hours);
+                                    temp.recoverTime = temp.infectedTime.plusHours(recoverHours);
+                                    double rate = 1;
+                                    rate = getProcessionRate(virusS, temp);
+                                    if(Math.random() < rate){
+                                        temp.isAsym = false;
+                                    }else temp.isAsym = true;
+                                    temp.isInContacted = false;
+                                }else{
+                                    temp.isInContacted = false;
+                                }
+                            }else{
+                                continue;
+                            }
+                        }else{ // 如果有，则需要计算当前时间的周围的接触强度
+                            if(temp.isInContacted == false){
+                                //说明是新的一次接触
+                                temp.isInContacted = true;
+                                temp.lastContactTime = curTime;
+                            }else{
+                                double virusNumSum = 0;
+                                double maxVirusNum = temp.maxVirusNumInContact;
+                                for(int j = 0; j < aroundInfectedTra.size(); j++){
+                                    Trajectory infectedTra = trajectories.get(aroundInfectedTra.get(j));
+                                    double tempVirusNum =infectedTra.virusNum;
+                                    if(Util.rand.nextInt(10) > infectedTra.maskRate){
+                                        tempVirusNum *= (double)Util.getNormalRand(30,15) / 10.0;
+                                    }
+                                    if(maxVirusNum < tempVirusNum){
+                                        maxVirusNum = tempVirusNum;
+                                        temp.maxVirusNumInContact = tempVirusNum;
+                                        temp.maxVirusNumIdInContact = aroundInfectedTra.get(j);
+                                    }
+                                    virusNumSum += tempVirusNum;
+                                }
+                                temp.virusNumSumInContact += virusNumSum;
+                            }
+                            double virusNumSum = 0;
+                            double maxVirusNum = temp.maxVirusNumInContact;
+                            for(int j = 0; j < aroundInfectedTra.size(); j++){
+                                Trajectory infectedTra = trajectories.get(aroundInfectedTra.get(j));
+                                double tempVirusNum = infectedTra.virusNum;
+                                if(Util.rand.nextInt(10) > infectedTra.maskRate){
+                                    tempVirusNum *= (double)Util.getNormalRand(30,15) / 10.0;
+                                }
+                                if(maxVirusNum < tempVirusNum){
+                                    maxVirusNum = tempVirusNum;
+                                    temp.maxVirusNumInContact = tempVirusNum;
+                                    temp.maxVirusNumIdInContact = aroundInfectedTra.get(j);
+                                }
+                                virusNumSum += tempVirusNum;
+                            }
+                            temp.virusNumSumInContact += virusNumSum;
+                        }
+                    }
+                }
+            }
+            // 模拟poi传染
+            for(int i =0; i < infectedIdList.size(); i ++){
+                Trajectory temp = trajectories.get(infectedIdList.get(i));
+                if(temp.path.get(latestPosition.get(infectedIdList.get(i))).isInPoi()){
+                    if(temp.isInPoiContacted){
+                        continue;
+                    }else{
+                        temp.isInPoiContacted = true;
+                        temp.lastContactTime = curTime;
+                        temp.lastPoiid = temp.path.get(latestPosition.get(infectedIdList.get(i))).poiid;
+                    }
+                }else{
+                    if(temp.isInPoiContacted){
+                        //说明刚刚离开poi，需要进行判断
+                        temp.isInPoiContacted = false;
+                        String poiid = temp.lastPoiid;
+                        temp.lastPoiid = null;
+                        List<Integer> aroundTraInPoi = new ArrayList<>();
+                        for(int j = 0; j < unInfectedIdList.size(); j ++){
+                            if(trajectories.get(unInfectedIdList.get(j)).getPath().get(latestPosition.get(unInfectedIdList.get(j))).isInPoi()){
+                                if(poiid.equals(trajectories.get(unInfectedIdList.get(j)).getPath().get(latestPosition.get(unInfectedIdList.get(j))).getPoiid())) {
+                                    aroundTraInPoi.add(unInfectedIdList.get(j));
+                                }
+                            }
+                        }
+                        if(aroundTraInPoi.size() > 6){ // 如果大于6人，则要从中选择6个人作为交互对象
+                            Set<Integer> choosenIndex = Util.getRandomsNoRepeat(0,aroundTraInPoi.size() - 1, 6);
+                            List<Integer> interationTra = new ArrayList<>();
+                            for(Integer s : choosenIndex){
+                                interationTra.add(aroundTraInPoi.get(s));
+                            }
+                            List<Integer> unInfectedTraidInPoi = new ArrayList<>();
+                            List<Integer> infectedTraidInPoi = new ArrayList<>();
+                            infectedTraidInPoi.add(temp.getId());
+                            for(int j = 0; j < interationTra.size();i++){
+                                if(trajectories.get(interationTra.get(j)).state == Trajectory.State.S){
+                                    unInfectedTraidInPoi.add(interationTra.get(j));
+                                }else{
+                                    infectedTraidInPoi.add(interationTra.get(j));
+                                }
+                            }
+                            if(unInfectedTraidInPoi.size() > 0){
+                                double maxVirusNum = -1;
+                                double virusNumSum = 0;
+                                int maxVirusNumId = -1;
+                                for(int j = 0; j < infectedTraidInPoi.size(); j++){
+                                    Trajectory infectedTra = trajectories.get(infectedTraidInPoi.get(j));
+                                    double tempVirusNum =infectedTra.virusNum;
+                                    if(Util.rand.nextInt(10) > infectedTra.maskRate){
+                                        tempVirusNum *= (double)Util.getNormalRand(30,15) / 10.0;
+                                    }
+                                    if(maxVirusNum < tempVirusNum){
+                                        maxVirusNum = tempVirusNum;
+                                        maxVirusNumId = infectedTraidInPoi.get(j);
+                                    }
+                                    virusNumSum += tempVirusNum;
+                                }
+                                for(int j = 0; j < unInfectedTraidInPoi.size(); j++){
+                                    Trajectory t = trajectories.get(unInfectedTraidInPoi.get(j));
+                                    Duration duration = Duration.between(t.lastContactTimeInPoi, curTime);
+                                    long seconds = duration.toSeconds();
+                                    //计算感染概率
+                                    double avgVirusNUm = virusNumSum;
+                                    double mask = 1;
+                                    double vc = 1;
+                                    if(temp.isVaccines.equals("A")){
+                                        vc = 0.5;
+                                    }
+                                    if(Util.rand.nextInt(10) > temp.maskRate){
+                                        mask = 0.75;
+                                    }
+                                    double rate = 1 - Math.exp(-1 * avgVirusNUm / 2700 * mask * vc);
+                                    if(Math.random() <rate){
+                                        t.state = Trajectory.State.E;
+                                        t.infectedBy = maxVirusNumId;
+                                        t.exposureTime = curTime;
+                                        t.isExposureInPoi = true;
+                                        long hours = Util.getNormalRand(72,48);
+                                        long recoverHours = Util.getNormalRand(170, 96);
+                                        t.infectedTime = t.exposureTime.plusHours(hours);
+                                        t.recoverTime = t.infectedTime.plusHours(recoverHours);
+                                        double r = 1;
+                                        r = getProcessionRate(virusS, t);
+                                        if(Math.random() < r){
+                                            t.isAsym = false;
+                                        }else t.isAsym = true;
+                                    }
+                                }
+                            }
+                        }
+                    }else{
+                        continue;
+                    }
+                }
+            }
+            // 更新位置
+            for(int i = 0; i < trajectoriesSize; i ++){
+                int timelineSize = trajectories.get(i).timeLine.size();
+                if(latestPosition.get(i) + 1 < timelineSize){
+                    var nextPoistionTime = trajectories.get(i).timeLine.get( latestPosition.get(i) + 1);
+                    if(nextPoistionTime != null && nextPoistionTime.compareTo(curTime) < 0){
+                        latestPosition.set(i, latestPosition.get(i) + 1 ); // 更新当前时间的位置.
+                    }
+                }else{
+
+                }
+            }
+            curTime = curTime.plusSeconds(1);
+        }
+    }
+    public List<Integer> getAroundTraInCommute(List<Trajectory> list, Trajectory cur, List<Integer> infectedTraIdList, List<Integer> lastPosition){
+        String curLng = cur.getPath().get(lastPosition.get(cur.getId())).getLng();
+        String curLat = cur.getPath().get(lastPosition.get(cur.getId())).getLat();
+        String poiid = cur.path.get(lastPosition.get(cur.getId())).getPoiid();
+        List<Integer> res = new ArrayList<>();
+        int size = infectedTraIdList.size();
+        for(int i = 0; i < size; i++){
+                // 判断通勤时的周围的人
+                if(!list.get(infectedTraIdList.get(i)).getPath().get(lastPosition.get(infectedTraIdList.get(i))).isInPoi() && Util.getDistance(curLng, curLat, list.get(infectedTraIdList.get(i)).getPath().get(lastPosition.get(infectedTraIdList.get(i))).getLng(),
+                    list.get(infectedTraIdList.get(i)).getPath().get(lastPosition.get(infectedTraIdList.get(i))).getLat()) < 30.0 &&
+                        !list.get(infectedTraIdList.get(i)).getPath().get(lastPosition.get(infectedTraIdList.get(i))).typeCode.equals("driving")){
+                        res.add(infectedTraIdList.get(i));
+                }
+        }
+        return res;
+    }
+    public boolean isInfectedInCommute(Trajectory temp, LocalDateTime curTime){
+        Duration duration = Duration.between(temp.lastContactTime, curTime);
+        long seconds = duration.toSeconds();
+        //计算感染概率
+        double avgVirusNUm = temp.virusNumSumInContact / seconds;
+        double mask = 1;
+        double vc = 1;
+        if(temp.isVaccines.equals("A")){
+            vc = 0.5;
+        }
+        if(Util.rand.nextInt(10) < temp.maskRate){
+            mask = 0.75;
+        }
+        double rate = 1 - Math.exp(-(avgVirusNUm * mask * vc) / 2700.0);
+        if(Math.random() <rate){
+            return true;
+        }else return false;
+    }
+
+    public double getProcessionRate(double virus,Trajectory temp){
+        double res = 1;
+        if(temp.age < 20){
+            res *= 0.5;
+        }else if(temp.age < 40){
+            res *= 0.6;
+        }else if(temp.age < 60){
+            res *= 0.7;
+        }else if(temp.age < 80){
+            res *= 0.9;
+        }
+        if(temp.isVaccines.equals("A")){
+            res *= 0.25;
+        }
+        return res * virus;
+    }
+
+    public void getSensiableToExposureAtfirst(Trajectory temp, LocalDateTime curTime){
+        temp.state = Trajectory.State.E;
+        temp.infectedBy = -1;
+        temp.exposureTime = curTime;
+        long hours = Util.getNormalRand(72,48);
+        long recoverHours = Util.getNormalRand(170, 96);
+        temp.infectedTime = temp.exposureTime.plusHours(hours);
+        temp.recoverTime = temp.infectedTime.plusHours(recoverHours);
+        double rate = 1;
+        rate = getProcessionRate(0.5, temp);
+        if(Math.random() < rate){
+            temp.isAsym = false;
+        }else temp.isAsym = true;
+        temp.isInContacted = false;
     }
 }

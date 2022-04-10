@@ -11,7 +11,7 @@ import java.util.Map;
 
 public interface PathService {
     public List<Trajectory> getTrajectoriesFromPost(LocalDateTime startTime, LocalDateTime endTime, int trajectoryNum, JSONArray patterns);
-    public Trajectory getTrajectory(String cityName, String adName, String startT, String endT, List<Map<Integer, List<Map<String, Integer>>>> pattern, boolean isRestrict, int age, String job, String sex, boolean isMask, String Vaccines, int drivingRate, int commutingTimeRate,String index) throws IOException ;
+    public Trajectory getTrajectory(String patternName, String cityName, String adName, String startT, String endT, List<Map<Integer, List<Map<String, Integer>>>> pattern, boolean isRestrict, int age, String job, String sex, int maskRate, String Vaccines, int drivingRate, int commutingTimeRate,String index) throws IOException ;
     public Integer choosePattern(Integer patternRateNum, List<Integer> patternChooser);
-
+    public void getTrajectoryAndSimulation(List<Trajectory> trajectories, int maxR0, String startTime, String endTime);
 }

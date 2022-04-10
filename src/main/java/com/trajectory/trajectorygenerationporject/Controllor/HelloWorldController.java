@@ -73,7 +73,7 @@ public class HelloWorldController {
         String temp =JSONArray.toJSONString(post.get("pattern"));
         JSONArray patterns = JSON.parseArray(temp);
         List<List<Map<Integer, List<Map<String, Integer>>>>> patternsList = new ArrayList<>();
-        List<JSONObject> patternsAttributeList = new ArrayList<>();
+        List<JSONObject> patternsAttributeJSONList = new ArrayList<>();
         for(int i = 0; i < patterns.size(); i++){
             var onePatternInfo = (JSONObject)patterns.get(i);
             JSONArray onePattern = (JSONArray)onePatternInfo.get("pattern");
@@ -83,7 +83,7 @@ public class HelloWorldController {
             JSONObject onePatternAttribute  = (JSONObject)onePatternAttributeInfo.get("attribute");
             JSONArray onePatternWorkdayPattern =  (JSONArray)onePatternWorkdayPatternInfo.get("workdayPattern");
             JSONArray onePatternNoworkdayPattern =  (JSONArray)onePatternNoworkdayPatternInfo.get("noworkdayPattern");
-            patternsAttributeList.add(onePatternAttribute);
+            patternsAttributeJSONList.add(onePatternAttribute);
             int workdayday = 5;
             int noworkdayday = 2;
             List<Map<Integer, List<Map<String, Integer>>>> pattern = new ArrayList<>();
@@ -152,8 +152,8 @@ public class HelloWorldController {
         }
         int TrajectoryRateNum = 0;
         List<Integer> patternChooser = new ArrayList<>();
-        for(int i =0; i < patternsAttributeList.size(); i++){
-            int singlePatternRate =  Integer.parseInt(patternsAttributeList.get(i).get("patternrate").toString());
+        for(int i =0; i < patternsAttributeJSONList.size(); i++){
+            int singlePatternRate =  Integer.parseInt(patternsAttributeJSONList.get(i).get("patternrate").toString());
             for(int j = 0; j < singlePatternRate; j++){
                 patternChooser.add(i);
             }
@@ -161,22 +161,36 @@ public class HelloWorldController {
             TrajectoryRateNum += singlePatternRate;
         }
         System.out.println("pattern:" + patternsList);
+
         List<Trajectory> res = new ArrayList<>();
         for(int i = 0; i < trajectoryNum; i ++){
             int num  = pathService.choosePattern(TrajectoryRateNum, patternChooser);
-            int maxage = Integer.parseInt(patternsAttributeList.get(num).get("maxage").toString());
-            int minAge = Integer.parseInt(patternsAttributeList.get(num).get("minage").toString());
-            int drivingRate = Integer.parseInt(patternsAttributeList.get(num).get("drivingrate").toString());
-            int genderRate = Integer.parseInt(patternsAttributeList.get(num).get("genderrate").toString());
+            int maxage = Integer.parseInt(patternsAttributeJSONList.get(num).get("maxage").toString());
+            int minAge = Integer.parseInt(patternsAttributeJSONList.get(num).get("minage").toString());
+            int drivingRate = Integer.parseInt(patternsAttributeJSONList.get(num).get("drivingrate").toString());
+            int genderRate = Integer.parseInt(patternsAttributeJSONList.get(num).get("genderrate").toString());
             String gender = "FM";
             if(Util.rand.nextInt(10) > genderRate){
                 gender = "M";
             }
             var pattern = patternsList.get(num);
-            String TraName = patternsAttributeList.get(num).get("patternname").toString();
+            String patternName = patternsAttributeJSONList.get(num).get("patternname").toString();
             int randomage = Util.rand.nextInt(maxage - minAge + 1) + minAge;
-            Trajectory trajectory = pathService.getTrajectory(cityName,cityName,startTime, endTime,pattern, false, randomage, "学生",gender, true, "疫苗",drivingRate,9,TraName+ i+"POIs");
-            Util.outputtheTrajectory(trajectory, TraName + i) ;
+            var tempTrajectory = new Trajectory(patternName,pattern, randomage,"job", gender, 8, "疫苗",drivingRate);
+            Trajectory trajectory = pathService.getTrajectory(patternName, cityName,cityName,startTime, endTime,pattern, false, randomage, "学生",gender, 8, "疫苗",drivingRate,9,patternName+ i+"POIs");
+            res.add(trajectory);
+            Util.outputtheTrajectory(trajectory, patternName + i) ;
+        }
+        System.out.println("res:" + res.get(0).path.get(0).getLng());
+        pathService.getTrajectoryAndSimulation(res,7,startTime,endTime);
+        for(int i = 0 ; i < res.size(); i ++){
+            var t = res.get(i);
+            if(t.state == Trajectory.State.S){
+                System.out.println("id:" + t.getId() + " 未感染病毒");
+            }else{
+                System.out.println("id:" + t.getId() + "感染了病毒，当前的状态是:" + t.state + "  感染的时间为：" + t.exposureTime +
+                        " 是被id:" + t.infectedBy + "的轨迹感染的");
+            }
         }
         return "已生成" + trajectoryNum + "个轨迹";
     }
@@ -277,10 +291,10 @@ public class HelloWorldController {
         list.add(singleDay);
         System.out.println(list);
         Trajectory trajectory;
-        trajectory = pathService.getTrajectory("北京市","朝阳区","2022-03-19 00:00:00", "2022-03-23 00:00:00",list, false, 20, "学生","M", true, "疫苗",5,9,"fileName");
+        //trajectory = pathService.getTrajectory("中学生", "北京市","朝阳区","2022-03-19 00:00:00", "2022-03-23 00:00:00",list, false, 20, "学生","M", true, "疫苗",5,9,"fileName");
 
         //创建工作薄对象
-        Util.outputtheTrajectory(trajectory, "tra");
+        //Util.outputtheTrajectory(trajectory, "tra");
         return "1";
     }
 }

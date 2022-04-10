@@ -31,7 +31,7 @@ class TrajectoryGenerationPorjectApplicationTests {
         //System.out.println("总耗时预计：" + originPath.getDuration() + "   预计结束时间为：" + curTime.plusSeconds(originPath.getDuration()));
 
 
-        Trajectory res = new Trajectory(25, "学生", "男性", true, "接种疫苗");
+        //Trajectory res = new Trajectory(25, "学生", "男性", true, "接种疫苗");
 //        System.out.println(cityService.findCityListByCityCode("0535").toString());
 //        System.out.println(cityService.findCityListByCityName("烟台市").toString());
 //        System.out.println(cityService.findCityListByAdName("长安区"));

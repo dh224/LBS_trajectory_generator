@@ -44,6 +44,11 @@ public class Util {
         }
         return null;
     }
+
+    public static int getNormalRand(int a, int b){
+        return (int)Math.round(Math.sqrt(b)*rand.nextGaussian() + a);
+    }
+
     public static String getTimeString(String fake){
         String[] startTimeN = fake.split("T");
         String startTime = startTimeN[0] + " " +  startTimeN[1];
@@ -132,5 +137,18 @@ public class Util {
         FileOutputStream out = new FileOutputStream(".\\src\\main\\resources\\static\\" +filenName + "u"+ uuid1.toString() +".xlsx");
         workbook.write(out);
         out.close();
+    }
+
+    public static Set<Integer> getRandomsNoRepeat(int start, int end, int count){
+        if(start > end || count < 1){
+            count = 0;
+        }
+        Set<Integer> res = new HashSet<>();
+        if(count>0){
+            while(res.size() < count){
+                res.add(start + rand.nextInt(end - start));
+            }
+        }
+        return res;
     }
 }
