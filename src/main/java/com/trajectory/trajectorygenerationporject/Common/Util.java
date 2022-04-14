@@ -102,6 +102,25 @@ public class Util {
         res.add(bg2.doubleValue());
         return res;
     }
+
+    public static void outputHomeInformation(List<Trajectory> res, String fileName) throws IOException{
+        XSSFWorkbook workbook=new XSSFWorkbook();//这里也可以设置sheet的Name
+        //创建工作表对象
+        XSSFSheet sheet = workbook.createSheet();
+        XSSFRow row = sheet.createRow(0);
+        for(int i = 0; i < res.size(); i ++){
+            //创建工作表的行
+            row = sheet.createRow(i+1);//设置第一行，从零开始
+            row.createCell(0).setCellValue("[" + res.get(i).homeLng+ "," + res.get(i).homeLat +  "],");//第一行第三列为aaaaaaaaaaaa
+            row.createCell(1).setCellValue(String.valueOf(res.get(i).homeName));//第一行第一列为日期
+        }
+        //文档输出
+        UUID uuid1 = Generators.timeBasedGenerator().generate();
+        FileOutputStream out = new FileOutputStream(".\\src\\main\\resources\\static\\" +"当前批次生成的轨迹的起始点" + "u"+ uuid1.toString() + ".xlsx");
+        workbook.write(out);
+        out.close();
+    }
+
     public static void outputtheTrajectory(Trajectory trajectory, String filenName) throws IOException {
         XSSFWorkbook workbook=new XSSFWorkbook();//这里也可以设置sheet的Name
         //创建工作表对象

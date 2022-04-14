@@ -24,7 +24,6 @@ public class Trajectory {
     public String patternName;
     public List<Map<Integer, List<Map<String, Integer>>>> pattern;
 
-
     //有关疫情模拟相关的属性（不得不添加的)
     public int id;
     public State state;
@@ -48,6 +47,9 @@ public class Trajectory {
     public int contactLevel;
     public boolean isExposureInPoi;
 
+    public String homeLng;
+    public String homeLat;
+    public String homeName;
     public Trajectory(String patternName, List<Map<Integer, List<Map<String, Integer>>>> pattern, int age, String job, String sex, int maskRate, String isVaccines, int drivingRate){
         this.patternName = patternName;
         this.pattern = pattern;

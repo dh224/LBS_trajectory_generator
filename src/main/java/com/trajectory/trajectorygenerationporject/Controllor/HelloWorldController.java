@@ -15,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -162,6 +164,7 @@ public class HelloWorldController {
         }
         System.out.println("pattern:" + patternsList);
 
+        List<Integer> timmer  = new ArrayList<>();
         List<Trajectory> res = new ArrayList<>();
         for(int i = 0; i < trajectoryNum; i ++){
             int num  = pathService.choosePattern(TrajectoryRateNum, patternChooser);
@@ -176,13 +179,23 @@ public class HelloWorldController {
             var pattern = patternsList.get(num);
             String patternName = patternsAttributeJSONList.get(num).get("patternname").toString();
             int randomage = Util.rand.nextInt(maxage - minAge + 1) + minAge;
-            var tempTrajectory = new Trajectory(patternName,pattern, randomage,"job", gender, 8, "疫苗",drivingRate);
+            LocalTime a = LocalTime.now();
             Trajectory trajectory = pathService.getTrajectory(patternName, cityName,cityName,startTime, endTime,pattern, false, randomage, "学生",gender, 8, "疫苗",drivingRate,9,patternName+ i+"POIs");
+            LocalTime end = LocalTime.now();
+            Duration between = Duration.between(a, end);
+            timmer.add(((int)between.getSeconds()));
             res.add(trajectory);
             Util.outputtheTrajectory(trajectory, patternName + i) ;
         }
-        System.out.println("res:" + res.get(0).path.get(0).getLng());
+        long timeGapSum = 0;
+        for(int j = 0;j < timmer.size();j++){
+            timeGapSum += timmer.get(j);
+        }
+        double timeGap = (double)timeGapSum / timmer.size();
+        System.out.println("生成每条轨迹的平均耗时为：" + timeGap);
+        Util.outputHomeInformation(res, "aaa");
         pathService.getTrajectoryAndSimulation(res,7,startTime,endTime);
+        LocalTime simulationStartTime = LocalTime.now();
         for(int i = 0 ; i < res.size(); i ++){
             var t = res.get(i);
             if(t.state == Trajectory.State.S){
@@ -192,6 +205,9 @@ public class HelloWorldController {
                         " 是被id:" + t.infectedBy + "的轨迹感染的");
             }
         }
+        LocalTime simulationEndTime = LocalTime.now();
+        Duration between = Duration.between(simulationStartTime, simulationEndTime);
+        System.out.println("模拟的总耗时" + between.getSeconds());
         return "已生成" + trajectoryNum + "个轨迹";
     }
     @GetMapping("/GenerateTrajectory")

@@ -94,11 +94,36 @@ public class POIsServiceImpl implements POIsService {
             }
         }
     }
-    public String findRandomPOIWithCityCodeAndTypeCode(String cityCode, String typeCode) throws IOException {
+    @Override
+    public String findRandomPOIWithCityCodeAndAdCodeAndTypeCode(String cityCode, String adCode, String typeCode) throws IOException{
         Integer page_num = Util.getNormalRand(1,90);
         if(page_num < 0) page_num = - page_num;
 //         = Util.rand.nextInt(20);
         //System.out.println("findRandomPOIWithCityCodeAndTypeCode" + cityCode + " typecode:" + typeCode);
+        String url = "https://restapi.amap.com/v5/place/text?parameters&key=192b951ff8bc56e05cb476f8740a760c&types=" + typeCode +
+                "&region=" + adCode + "&city_limit=true&show_fields=navi&page_size=25&page_num=" + page_num;
+        this.log.info("发送请求获得随机POI url:" + url);
+        JSONObject res = Util.sentGet(url);
+        var pois = res.getJSONArray("pois");
+        int Max_num = 0;
+        while(pois.size() == 0){
+            if(Max_num++ > 30) return null;
+            this.log.info("选到了空白页，重新发送请求.");
+            page_num = Util.getNormalRand(1,90);
+            if(page_num < 0) page_num = - page_num;
+            url = "https://restapi.amap.com/v5/place/text?parameters&key=192b951ff8bc56e05cb476f8740a760c&types=" + typeCode +
+                    "&region=" + cityCode + "&show_fields=navi&page_size=25&page_num=" + page_num;
+            res = Util.sentGet(url);
+            pois = res.getJSONArray("pois");
+        }
+        int poi_num = Util.rand.nextInt(pois.size());
+        String poiid = parsePOIAndInsert(pois, typeCode,poi_num);
+        return poiid;
+    }
+
+    public String findRandomPOIWithCityCodeAndTypeCode(String cityCode, String typeCode) throws IOException {
+        Integer page_num = Util.getNormalRand(1,90);
+        if(page_num < 0) page_num = - page_num;
         String url = "https://restapi.amap.com/v5/place/text?parameters&key=192b951ff8bc56e05cb476f8740a760c&types=" + typeCode +
                 "&region=" + cityCode + "&show_fields=navi&page_size=25&page_num=" + page_num;
         this.log.info("发送请求获得随机POI url:" + url);
@@ -120,10 +145,35 @@ public class POIsServiceImpl implements POIsService {
         return poiid;
     }
 
+    @Override
+    public String findRandomPOIWithCityCodeAndTypeCodeAndDistance_v3(String cityCode, String typeCode, Position basePosition, Integer radius, String key) throws IOException{
+        String url = "https://restapi.amap.com/v3/place/around?parameter&key=" + key + "&types=" + typeCode + "&city=" + cityCode + "&location=" +
+                basePosition.getLng() + "," + basePosition.getLat() + "&radius=" + radius + "&sortrule=weight&&city_limit=true&page=1";
+        JSONObject res = Util.sentGet(url);
+        System.out.println("当前v3的url用于获取总数：" + url);
+        int count = res.getInteger("count");
+        if(count == 0) return null;
+        else {
+            int num = Util.getNormalRand(0,count - 1);
+            if(num< 0) num = - num;
+            int pagesize = num / 20;
+            url = "https://restapi.amap.com/v3/place/around?parameter&key=" + key + "&types=" + typeCode + "&city=" + cityCode + "&location=" +
+                    basePosition.getLng() + "," + basePosition.getLat() + "&radius=" + radius + "&extensions=all&sortrule=weight&&city_limit=true&page=" + pagesize;
+            num = num % 20;
+            if(num >= count - 1) num = count - 1;
+            System.out.println("当前v3的url请求：" + url);
+            res = Util.sentGet(url);
+            JSONArray pois = res.getJSONArray("pois");
+            JSONObject poi = pois.getJSONObject(num);
+            String poiid = parsePOIAndInsert(pois, typeCode, num);
+            return poiid;
+        }
+    }
+
     public String findRandomPOIWithCityCodeAndTypeCodeAndDistance(String cityCode, String typeCode, Position basePosition, Integer radius) throws IOException{
         Integer page_num = Util.getNormalRand(1,90);
         if(page_num < 0) page_num = - page_num;
-        System.out.println("findRandomPOIWithCityCodeAndTypeCodeAndDistance" +radius );
+        System.out.println("findRandomPOIWithCityCodeAndTypeCodeAndDistance" + radius );
         String url = "https://restapi.amap.com/v5/place/around?parameters" + "&key=192b951ff8bc56e05cb476f8740a760c&types=" + typeCode +
                 "&region=" + cityCode + "&location=" + basePosition.getLng() + "," + basePosition.getLat() + "&radius=" + radius + "&city_limit=true" +"&show_fields=navi&page_size=20&page_num=" + page_num;
         this.log.info("发送请求依据距离获得随机POI url:" + url);
@@ -131,7 +181,7 @@ public class POIsServiceImpl implements POIsService {
         var pois = res.getJSONArray("pois");
         int Max_num = 0;
         while(pois.size() == 0){
-            if(Max_num++ > 50) return null;
+            if(Max_num++ > 30) return null;
             this.log.info("选到了空白页，重新发送请求.");
             page_num = Util.getNormalRand(1,90);
             if(page_num < 0) page_num = - page_num;

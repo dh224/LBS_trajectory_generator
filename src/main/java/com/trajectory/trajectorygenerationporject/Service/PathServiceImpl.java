@@ -42,8 +42,8 @@ public class PathServiceImpl implements PathService {
     }
     @Override
     public Trajectory getTrajectory(String patternName, String cityName, String adName, String startT, String endT, List<Map<Integer, List<Map<String, Integer>>>> pattern, boolean isRestrict, int age, String job, String sex, int maskRate, String Vaccines, int drivingRate, int commutingTimeRate,String index) throws IOException {
+        String key = "192b951ff8bc56e05cb476f8740a760c";
         //要求起始值和结束的时间为整小时。
-        System.out.println("list::" + pattern);
         boolean isKeepStayPoint = false;
         System.out.println(startT);
         System.out.println(endT);
@@ -60,7 +60,11 @@ public class PathServiceImpl implements PathService {
         var needPositions = startdayPattern.get(curTime.getHour()); // 获得当前应该去的所有位置 MAP
         var curPositionTypeMap = needPositions.get(rand.nextInt(needPositions.size()));
         var curPositionType = getTypeCodeByCurMap(curPositionTypeMap);// 设置在起始时间的位置类型.
-        String startPOIID = poIsService.findRandomPOIWithCityCodeAndTypeCode(cityCode, curPositionType);
+        String startPOIID = poIsService.findRandomPOIWithCityCodeAndAdCodeAndTypeCode(cityCode,"330102", curPositionType);
+        addHomeInformationAndInit(res,startPOIID);
+        res.isInPoiContacted = true;
+        res.lastContactTimeInPoi = curTime;
+        res.lastPoiid = startPOIID;
         POIs startPOI = poIsService.findPOIByID(startPOIID);
         this.log.info("起始点的位置是:" + startPOI.getPOIName());
         thisPathPOIs.put(curPositionType, poisDAO.findPOIByID(startPOIID)); //添加初始的POI位置,此后的位置或许可以根据此poi的周围随机选择
@@ -109,15 +113,26 @@ public class PathServiceImpl implements PathService {
                         POIs nextPoi = thisPathPOIs.get(targetPositionType);
                         this.log.info("前往重复的目标POI,名称是："+ nextPoi.getPOIName() );
                         if(isDriving(curPoi, nextPoi, drivingRate)){
-                            LocalDateTime temp = sentGetAndCombinationTrajectoryWithDrivingmode(curPoi, nextPoi, res, curTime); // 出发！
+                            LocalDateTime temp = sentGetAndCombinationTrajectoryWithDrivingmode(curPoi, nextPoi, res, curTime, key); // 出发！
                             curTime = temp;
                             System.out.println("设置当前点为：" + nextPoi.getPOITypeCode());
                             curPositionType = nextPoi.getPOITypeCode();
                         }else{
-                            LocalDateTime temp = sentGetAndCombinationTrajectoryWithWalkingmode(curPoi, nextPoi, res, curTime); // 出发！
+                            LocalDateTime temp ; // 出发！
+                            if(isPublictransport(curPoi, nextPoi)){
+                                temp = sentGetAndCombinationTrajectoryWithPublictransportMode(curPoi, nextPoi, res, curTime,cityCode, key);
+                                if(temp == null){
+                                    temp = sentGetAndCombinationTrajectoryWithWalkingmode(curPoi, nextPoi, res, curTime, key);
+                                }
+                            }else{
+                                if(isBycycling(curPoi, nextPoi,4)){
+                                    temp = sentGetAndCombinationTrajectoryWithBicyclingmode(curPoi, nextPoi, res, curTime, key);
+                                }else{
+                                    temp = sentGetAndCombinationTrajectoryWithWalkingmode(curPoi, nextPoi, res, curTime, key);
+                                }
+                            }
                             if(temp != null) curTime = temp;
-                            else curTime = sentGetAndCombinationTrajectoryWithDrivingmode(curPoi, nextPoi, res, curTime);
-                            System.out.println("设置当前点为：" + nextPoi.getPOITypeCode());
+                            else curTime = sentGetAndCombinationTrajectoryWithDrivingmode(curPoi, nextPoi, res, curTime, key);
                             curPositionType = nextPoi.getPOITypeCode();
                         }
                     }else{ //若没有访问过此类地点，则先随机获得一个该地点的POI。随后再申请轨迹
@@ -135,29 +150,37 @@ public class PathServiceImpl implements PathService {
                         }else{
                             //搜索POI考虑城市和当前所在的位置，减少大范围通勤情况.
                             this.log.info("限定范围的申请POIType:" + targetPositionType + "!\n当前的中心点是:" + curPoiPosition.getLng() + "," + curPoiPosition.getLat());
-                            targetPOIID = poIsService.findRandomPOIWithCityCodeAndTypeCodeAndDistance(cityCode, targetPositionType, curPoiPosition,targetPositionTypeMap.get(targetPositionType));
+                            targetPOIID = poIsService.findRandomPOIWithCityCodeAndTypeCodeAndDistance_v3(cityCode, targetPositionType, curPoiPosition,targetPositionTypeMap.get(targetPositionType), key);
                             if (targetPOIID==null){
-                                targetPOIID = poIsService.findRandomPOIWithCityCodeAndTypeCode(cityCode, targetPositionType);
+                                targetPOIID = poIsService.findRandomPOIWithCityCodeAndTypeCodeAndDistance_v3(cityCode, targetPositionType, curPoiPosition,targetPositionTypeMap.get(targetPositionType) * 2, key);
+                            }
+                            if (targetPOIID == null){
+                                targetPOIID = poIsService.findRandomPOIWithCityCodeAndTypeCodeAndDistance_v3(cityCode, targetPositionType, curPoiPosition,targetPositionTypeMap.get(targetPositionType) * 8, key);
                             }
                         }
                         POIs nextPoi = poisDAO.findPOIByID(targetPOIID);
                         this.log.info("一个新的目标POI名称是:" + nextPoi.getPOIName() + "当前预期的最大通勤距离是：" + targetPositionTypeMap.get(targetPositionType));
                         thisPathPOIs.put(nextPoi.getPOITypeCode(), nextPoi); // 将新地点插入map中
                         if(isDriving(curPoi, nextPoi, drivingRate)){
-                            curTime = sentGetAndCombinationTrajectoryWithDrivingmode(curPoi, nextPoi, res, curTime); // 出发！
+                            curTime = sentGetAndCombinationTrajectoryWithDrivingmode(curPoi, nextPoi, res, curTime, key); // 出发！
                             System.out.println("新设置当前点为：" + nextPoi.getPOITypeCode());
                             curPositionType = nextPoi.getPOITypeCode();
                         }else{
                             LocalDateTime temp;
-                            if(isBycycling(curPoi, nextPoi, 4)){
-                                temp = sentGetAndCombinationTrajectoryWithBicyclingmode(curPoi, nextPoi, res, curTime);
-                            }else temp = sentGetAndCombinationTrajectoryWithWalkingmode(curPoi, nextPoi, res, curTime); // 出发！
-                            if(temp != null) curTime = temp;
-                            else curTime = sentGetAndCombinationTrajectoryWithDrivingmode(curPoi, nextPoi, res, curTime); // 出发！
+                            if(isPublictransport(curPoi, nextPoi) == true){
+                                temp = sentGetAndCombinationTrajectoryWithPublictransportMode(curPoi, nextPoi, res, curTime, cityCode, key);
+                                if(temp != null) curTime = temp;
+                                else curTime = sentGetAndCombinationTrajectoryWithWalkingmode(curPoi, nextPoi, res, curTime, key); // 出发！
+                            }else{
+                                if(isBycycling(curPoi, nextPoi, 4)){
+                                    temp = sentGetAndCombinationTrajectoryWithBicyclingmode(curPoi, nextPoi, res, curTime, key);
+                                }else temp = sentGetAndCombinationTrajectoryWithWalkingmode(curPoi, nextPoi, res, curTime, key); // 出发！
+                                if(temp != null) curTime = temp;
+                                else curTime = sentGetAndCombinationTrajectoryWithDrivingmode(curPoi, nextPoi, res, curTime, key); // 出发！
+                            }
                             System.out.println("新设置当前点为：" + nextPoi.getPOITypeCode());
                             curPositionType = nextPoi.getPOITypeCode();
                         }
-                        //curTime = sentGetAndCombinationTrajectory(curPoi, nextPoi, res, drivingRate, curTime);// 出发！
                     }
                 }
             }
@@ -190,6 +213,24 @@ public class PathServiceImpl implements PathService {
     public String getTypeCodeByCurMap(Map<String, Integer> curMap){
         return curMap.keySet().toArray()[0].toString();
     }
+
+    public boolean isPublictransport(POIs curPoi, POIs nextPoi){
+        double distance = Util.getDistance(curPoi.getLng(), curPoi.getLat(), nextPoi.getLng(), nextPoi.getLat());
+        if(distance > 4000){
+            if(rand.nextInt(10) > 3){
+                return true;
+            }else{
+                return false;
+            }
+        }else{
+            if(rand.nextInt(10) > 5){
+                return true;
+            }else{
+                return false;
+            }
+        }
+    }
+
     public boolean isDriving(POIs curPoi, POIs nextPoi, int rate){
         double distance = Util.getDistance(curPoi.getLng(), curPoi.getLat(), nextPoi.getLng(), nextPoi.getLat());
         boolean isDriving = false;
@@ -205,11 +246,37 @@ public class PathServiceImpl implements PathService {
         }
         return  isDriving;
     }
-    public LocalDateTime sentGetAndCombinationTrajectoryWithDrivingmode(POIs curPOI, POIs nextPOI, Trajectory res, LocalDateTime curTime) throws IOException {
+
+    public LocalDateTime sentGetAndCombinationTrajectoryWithPublictransportMode(POIs curPOI, POIs nextPOI, Trajectory res, LocalDateTime curTime, String cityCode, String key) throws  IOException{
+        double distance = Util.getDistance(curPOI.getLng(), curPOI.getLat(), nextPOI.getLng(), nextPOI.getLat());
+        key = "192b951ff8bc56e05cb476f8740a760c";
+        DateTimeFormatter dtfm1 = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        DateTimeFormatter dtfm2 = DateTimeFormatter.ofPattern("HH-mm");
+        String departureDate = dtfm1.format(curTime);
+        String departureTime = dtfm2.format(curTime);
+        System.out.println("当前的时间是: " + departureDate + departureTime);
+        String startLL = curPOI.getLng() + "," + curPOI.getLat();
+        String endLL = nextPOI.getLng() + "," + nextPOI.getLat();
+        String url =
+                "https://restapi.amap.com/v5/direction/transit/integrated?parameters" +"&key="+ key + "&origin="
+                + startLL + "&destination=" + endLL + "&origin_id=" + curPOI.getPOIID() + "&destination_id" + nextPOI.getPOIID() + "&city1=" + cityCode + "&city2=" + cityCode +
+                        "&AlternativeRoute=1&nightflag=1&data=" + departureDate + "&time=" + departureTime + "&show_fields=cost,polyline";
+        System.out.println("出行url:" + url);
+        JSONObject singlePath = Util.sentGet(url);
+        if(singlePath.get("count").toString().equals("0")){
+            System.out.println("公共出行无法获得方案，当前目的地与出发地之间的距离是：" + Util.getDistance(curPOI.getLng(), curPOI.getLat(), nextPOI.getLng(), nextPOI.getLat()));
+            return null;
+        }
+        OriginPath originPath = getOriginPathWithPublictransportModeFromJSON(singlePath, "Publictransport");
+        curTime = addPositionFromOriginPathWithPublictransportMode(originPath, curTime, 5,res);
+        return curTime;
+    }
+
+    public LocalDateTime sentGetAndCombinationTrajectoryWithDrivingmode(POIs curPOI, POIs nextPOI, Trajectory res, LocalDateTime curTime, String key) throws IOException {
             double distance = Util.getDistance(curPOI.getLng(), curPOI.getLat(), nextPOI.getLng(), nextPOI.getLat());
             String startLL = curPOI.getLng() + "," + curPOI.getLat();
             String endLL = nextPOI.getLng() + "," + nextPOI.getLat();
-            String url = "https://restapi.amap.com/v5/direction/" + "driving" + "?parameters&key=192b951ff8bc56e05cb476f8740a760c&origin="
+            String url = "https://restapi.amap.com/v5/direction/" + "driving" + "?parameters&key="+ key + "&origin="
                     + startLL + "&destination=" + endLL + "&origin_id=" + curPOI.getPOIID() + "&destination_id" + nextPOI.getPOIID() +
                     "&show_fields=cost,polyline";
             System.out.println("sentGetAndCombinationTrajectory   " + url);
@@ -220,16 +287,15 @@ public class PathServiceImpl implements PathService {
             return curTime;
     }
 
-    public LocalDateTime sentGetAndCombinationTrajectoryWithWalkingmode(POIs curPOI, POIs nextPOI, Trajectory res, LocalDateTime curTime) throws IOException {
+    public LocalDateTime sentGetAndCombinationTrajectoryWithWalkingmode(POIs curPOI, POIs nextPOI, Trajectory res, LocalDateTime curTime, String key) throws IOException {
         double distance = Util.getDistance(curPOI.getLng(), curPOI.getLat(), nextPOI.getLng(), nextPOI.getLat());
         String startLL = curPOI.getLng() + "," + curPOI.getLat();
         String endLL = nextPOI.getLng() + "," + nextPOI.getLat();
-        String url = "https://restapi.amap.com/v5/direction/" + "walking" + "?parameters&key=192b951ff8bc56e05cb476f8740a760c&origin="
+        String url = "https://restapi.amap.com/v5/direction/" + "walking" + "?parameters&key="+ key +"&origin="
                 + startLL + "&destination=" + endLL + "&origin_id=" + curPOI.getPOIID() + "&destination_id" + nextPOI.getPOIID() +
                 "&show_fields=cost,polyline";
         this.log.info("sentGetAndCombinationTrajectory " + url);
         JSONObject singlePath =  Util.sentGet(url);
-
         if(singlePath.get("status").toString().equals("0")){
             return null;
         }
@@ -239,11 +305,11 @@ public class PathServiceImpl implements PathService {
         return curTime;
     }
 
-    public LocalDateTime sentGetAndCombinationTrajectoryWithBicyclingmode(POIs curPOI, POIs nextPOI, Trajectory res, LocalDateTime curTime) throws IOException {
+    public LocalDateTime sentGetAndCombinationTrajectoryWithBicyclingmode(POIs curPOI, POIs nextPOI, Trajectory res, LocalDateTime curTime, String key) throws IOException {
         double distance = Util.getDistance(curPOI.getLng(), curPOI.getLat(), nextPOI.getLng(), nextPOI.getLat());
         String startLL = curPOI.getLng() + "," + curPOI.getLat();
         String endLL = nextPOI.getLng() + "," + nextPOI.getLat();
-        String url = "https://restapi.amap.com/v5/direction/" + "bicycling" + "?parameters&key=192b951ff8bc56e05cb476f8740a760c&origin="
+        String url = "https://restapi.amap.com/v5/direction/" + "bicycling" + "?parameters&key=" + key + "&origin="
                 + startLL + "&destination=" + endLL + "&origin_id=" + curPOI.getPOIID() + "&destination_id" + nextPOI.getPOIID() +
                 "&show_fields=cost,polyline";
         this.log.info("sentGetAndCombinationTrajectory " + url);
@@ -298,6 +364,17 @@ public class PathServiceImpl implements PathService {
         }
     }
 
+    public static LocalDateTime pathStayForBus(LocalDateTime startTime, LocalDateTime endTime, Position waitPoint, Trajectory res){
+
+        LocalDateTime pointer = startTime;
+        while(startTime.plusSeconds(5).compareTo(endTime.minusSeconds(5))<0){
+            res.addPositionWithTimeline(waitPoint, startTime);
+            startTime = startTime.plusSeconds(5);
+        }
+        res.addPositionWithTimeline(waitPoint, endTime);
+        return endTime;
+    }
+
     public LocalDateTime pathStayAwhile(LocalDateTime startTime, LocalDateTime endTime, POIs poi,Trajectory res, boolean isKeepStayPoint){
         LocalDateTime pointer = startTime;
         if(isKeepStayPoint){
@@ -316,6 +393,178 @@ public class PathServiceImpl implements PathService {
                     res.addPositionWithTimeline(temp,startTime);
                 }
                     startTime = startTime.plusSeconds(5);
+            }
+        }
+        return startTime;
+    }
+
+    public static LocalDateTime addPositionFromOriginPathWithPublictransportMode(OriginPath originPath, LocalDateTime startTime, int d, Trajectory res){
+        int all_Distance = originPath.getDistance(); // 总距离;
+        //目前我们假设地铁每5分钟一班、公交车20分钟一班
+        for(int i = 0; i < originPath.getSize(); i ++){
+           // 对于分段中的每一点，先判断是步行的分段还是公交路线的分段
+            if(originPath.getStep_mode().get(i).equals("walking")){
+                Position startPosition = new Position(originPath.getStep_polyLine().get(i).get(0).getLng(),
+                        originPath.getStep_polyLine().get(i).get(0).getLat(),
+                        originPath.getStep_polyLine().get(i).get(0).getTypeCode());
+                res.addPositionWithTimeline(startPosition, startTime);
+                int stepDur = originPath.getStep_duration().get(i);
+                LocalDateTime stepEndTime = startTime.plusSeconds(stepDur);
+                startTime = startTime.plusSeconds(d);
+                int pointNum = stepDur / d ; // 应该插入几个点
+                double step_velocity = originPath.getStep_velocity().get(i);
+                double stepForward = step_velocity * d;
+
+                var last = startPosition;
+                var stepLong = stepForward;
+                int k = 1; // 第二个点
+                int j = 0;
+                boolean isInsertLast = false;
+                while(j < pointNum){
+                        if(k == originPath.getStep_polyLine().get(i).size() - 1){ // 到了最后一点了
+                            double dis = Util.getDistance(last.getLng(), last.getLat(),
+                                    originPath.getStep_polyLine().get(i).get(k).getLng(),
+                                    originPath.getStep_polyLine().get(i).get(k).getLat());
+                            if(dis < stepLong){
+                                var lastPosition = new Position(originPath.getStep_polyLine().get(i).get(k).getLng(),
+                                        originPath.getStep_polyLine().get(i).get(k).getLat(),
+                                        originPath.getStep_polyLine().get(i).get(k).getTypeCode());
+                                startTime = stepEndTime;
+                                res.addPositionWithTimeline(lastPosition,startTime); // 插入最后一点
+                                startTime = startTime.plusSeconds(d);
+                                isInsertLast = true;
+                                break;
+                            }else{
+                                double rate = stepLong / dis;
+                                j++;
+                                var tempLL = Util.getMidLL(last.getLng(), last.getLat(), originPath.getStep_polyLine().get(i).get(k).getLng(),
+                                        originPath.getStep_polyLine().get(i).get(k).getLat(), rate);
+                                Position insertPosition = new Position(tempLL.get(0).toString(), tempLL.get(1).toString(), originPath.getStep_mode().get(i));
+                                res.addPositionWithTimeline(insertPosition, startTime);
+                                startTime = startTime.plusSeconds(d);
+                                stepLong = stepForward; // 恢复步长
+                                last = insertPosition; // 更新当前位置
+                            }
+                        }else{
+                            double dis = Util.getDistance(last.getLng(), last.getLat(),
+                                    originPath.getStep_polyLine().get(i).get(k).getLng(),
+                                    originPath.getStep_polyLine().get(i).get(k).getLat());
+                            if(dis < stepLong){ // 要移动到下一点
+                                stepLong -= dis;
+                                last = originPath.getStep_polyLine().get(i).get(k);
+                                k++;
+                            }else{ // 说明此时应在两点间插值
+                                double rate = stepLong / dis;
+                                j++;
+                                var tempLL = Util.getMidLL(last.getLng(), last.getLat(), originPath.getStep_polyLine().get(i).get(k).getLng(),
+                                        originPath.getStep_polyLine().get(i).get(k).getLat(), rate);
+                                Position insertPosition = new Position(tempLL.get(0).toString(), tempLL.get(1).toString(), originPath.getStep_mode().get(i));
+                                res.addPositionWithTimeline(insertPosition, startTime);
+                                startTime = startTime.plusSeconds(d);
+                                stepLong = stepForward; // 恢复步长
+                                last = insertPosition; // 更新当前位置
+                            }
+                        }
+                }
+                if(!isInsertLast){
+                    var lastPosition = new Position(originPath.getStep_polyLine().get(i).get(k).getLng(),
+                            originPath.getStep_polyLine().get(i).get(k).getLat(),
+                            originPath.getStep_polyLine().get(i).get(k).getTypeCode());
+                    startTime = stepEndTime;
+                    res.addPositionWithTimeline(lastPosition,startTime); // 插入最后一点
+                    startTime = startTime.plusSeconds(d);
+                }
+                if(i != originPath.getSize() - 1){
+                    String waitType = originPath.getStep_mode().get(i + 1);
+                    if(waitType.equals("metro")){
+                        int mins = startTime.getMinute();
+                        int secs = startTime.getSecond();
+                        LocalDateTime endTime = startTime.plusSeconds(60 - secs).plusMinutes(5 - mins % 5);
+                        var lastPosition = new Position(originPath.getStep_polyLine().get(i).get(k).getLng(),
+                                originPath.getStep_polyLine().get(i).get(k).getLat(),
+                                originPath.getStep_polyLine().get(i).get(k).getTypeCode());
+                        startTime = pathStayForBus(startTime, endTime,lastPosition,res);
+                    }else{
+                        int mins = startTime.getMinute();
+                        int secs = startTime.getSecond();
+                        LocalDateTime endTime = startTime.plusSeconds(60 - secs).plusMinutes(20 - mins % 20);
+                        var lastPosition = new Position(originPath.getStep_polyLine().get(i).get(k).getLng(),
+                                originPath.getStep_polyLine().get(i).get(k).getLat(),
+                                originPath.getStep_polyLine().get(i).get(k).getTypeCode());
+                        startTime = pathStayForBus(startTime, endTime,lastPosition,res);
+                    }
+                }
+            }else{
+                Position startPosition = new Position(originPath.getStep_polyLine().get(i).get(0).getLng(),
+                        originPath.getStep_polyLine().get(i).get(0).getLat(),
+                        originPath.getStep_polyLine().get(i).get(0).getTypeCode());
+                res.addPositionWithTimeline(startPosition, startTime);
+                int stepDur = originPath.getStep_duration().get(i);
+                LocalDateTime stepEndTime = startTime.plusSeconds(stepDur);
+                startTime = startTime.plusSeconds(d);
+                int pointNum = stepDur / d ; // 应该插入几个点
+                double step_velocity = originPath.getStep_velocity().get(i);
+                double stepForward = step_velocity * d;
+
+                var last = startPosition;
+                var stepLong = stepForward;
+                int k = 1; // 第二个点
+                int j = 0;
+                boolean isInsertLast = false;
+                while(j < pointNum){
+                    if(k == originPath.getStep_polyLine().get(i).size() - 1){ // 到了最后一点了
+                        double dis = Util.getDistance(last.getLng(), last.getLat(),
+                                originPath.getStep_polyLine().get(i).get(k).getLng(),
+                                originPath.getStep_polyLine().get(i).get(k).getLat());
+                        if(dis < stepLong){
+                            var lastPosition = new Position(originPath.getStep_polyLine().get(i).get(k).getLng(),
+                                    originPath.getStep_polyLine().get(i).get(k).getLat(),
+                                    originPath.getStep_polyLine().get(i).get(k).getTypeCode());
+                            startTime = stepEndTime;
+                            res.addPositionWithTimeline(lastPosition,startTime); // 插入最后一点
+                            startTime = startTime.plusSeconds(d);
+                            isInsertLast = true;
+                            break;
+                        }else{
+                            double rate = stepLong / dis;
+                            j++;
+                            var tempLL = Util.getMidLL(last.getLng(), last.getLat(), originPath.getStep_polyLine().get(i).get(k).getLng(),
+                                    originPath.getStep_polyLine().get(i).get(k).getLat(), rate);
+                            Position insertPosition = new Position(tempLL.get(0).toString(), tempLL.get(1).toString(), originPath.getStep_mode().get(i));
+                            res.addPositionWithTimeline(insertPosition, startTime);
+                            startTime = startTime.plusSeconds(d);
+                            stepLong = stepForward; // 恢复步长
+                            last = insertPosition; // 更新当前位置
+                        }
+                    }else{
+                        double dis = Util.getDistance(last.getLng(), last.getLat(),
+                                originPath.getStep_polyLine().get(i).get(k).getLng(),
+                                originPath.getStep_polyLine().get(i).get(k).getLat());
+                        if(dis < stepLong){ // 要移动到下一点
+                            stepLong -= dis;
+                            last = originPath.getStep_polyLine().get(i).get(k);
+                            k++;
+                        }else{ // 说明此时应在两点间插值
+                            double rate = stepLong / dis;
+                            j++;
+                            var tempLL = Util.getMidLL(last.getLng(), last.getLat(), originPath.getStep_polyLine().get(i).get(k).getLng(),
+                                    originPath.getStep_polyLine().get(i).get(k).getLat(), rate);
+                            Position insertPosition = new Position(tempLL.get(0).toString(), tempLL.get(1).toString(), originPath.getStep_mode().get(i));
+                            res.addPositionWithTimeline(insertPosition, startTime);
+                            startTime = startTime.plusSeconds(d);
+                            stepLong = stepForward; // 恢复步长
+                            last = insertPosition; // 更新当前位置
+                        }
+                    }
+                }
+                if(!isInsertLast){
+                    var lastPosition = new Position(originPath.getStep_polyLine().get(i).get(k).getLng(),
+                            originPath.getStep_polyLine().get(i).get(k).getLat(),
+                            originPath.getStep_polyLine().get(i).get(k).getTypeCode());
+                    startTime = stepEndTime;
+                    res.addPositionWithTimeline(lastPosition,startTime); // 插入最后一点
+                    startTime = startTime.plusSeconds(d);
+                }
             }
         }
         return startTime;
@@ -411,8 +660,74 @@ public class PathServiceImpl implements PathService {
                 }
             }
         }
-
         return startTime;
+    }
+
+    public static OriginPath getOriginPathWithPublictransportModeFromJSON(JSONObject jsonObject, String pathMode){
+        OriginPath originPath = new OriginPath();
+        originPath.setMode(pathMode);
+        JSONObject path = jsonObject.getJSONObject("route").getJSONArray("transits").getJSONObject(0); //取第一种方案
+        originPath.setDistance(path.getInteger("distance"));
+        JSONArray steps = path.getJSONArray("segments");
+        for(int i =0; i < steps.size(); i++){
+            var step = steps.getJSONObject(i);
+            if(step.getJSONObject("walking") != null){
+                var walkingSteps = step.getJSONObject("walking");
+                originPath.getStep_distance().add(walkingSteps.getInteger("distance"));
+                originPath.getStep_duration().add(walkingSteps.getJSONObject("cost").getInteger("duration"));
+                originPath.getStep_velocity().add((double) walkingSteps.getInteger("distance") / (double)walkingSteps.getJSONObject("cost").getInteger("duration")); //添加每step的均速
+                originPath.getStep_mode().add("walking");
+                var eachSteps = walkingSteps.getJSONArray("steps");
+                List<Position> step_polyline = new ArrayList<>();
+                for(int j = 0; j < eachSteps.size(); j ++){
+                    var oneStep = eachSteps.getJSONObject(j);
+                    var tempPolyline = oneStep.getJSONObject("polyline").getString("polyline");
+                    String[] tempEachPosition = tempPolyline.split(";");
+                    if(j != 0){
+                        for(int k =0; k < tempEachPosition.length; k ++){
+                            if(k == 0) continue;
+                            String t_Lng = tempEachPosition[k].split(",")[0];
+                            String t_Lat = tempEachPosition[k].split(",")[1];
+                            String mode = "walking";
+                            step_polyline.add(new Position(t_Lng, t_Lat, mode));
+                        }
+                    }else{
+                        for(int k = 0; k < tempEachPosition.length; k ++){
+                            String t_Lng = tempEachPosition[k].split(",")[0];
+                            String t_Lat = tempEachPosition[k].split(",")[1];
+                            String mode = "walking";
+                            step_polyline.add(new Position(t_Lng, t_Lat, mode));
+                        }
+                    }
+                }
+                originPath.getStep_polyLine().add(step_polyline);
+                originPath.setSize(originPath.getSize() + 1);
+            }
+            if(step.getJSONObject("bus") != null){
+                var busSteps = step.getJSONObject("bus").getJSONArray("buslines").getJSONObject(0);
+                String step_type = busSteps.getString("type");
+                String step_mode = "sub";
+                if(step_type.equals("普通公交线路")){
+                    step_mode = "bus";
+                }else{
+                    step_mode = "motro";
+                }
+                originPath.getStep_distance().add(busSteps.getInteger("distance"));
+                originPath.getStep_duration().add(busSteps.getJSONObject("cost").getInteger("duration"));
+                originPath.getStep_velocity().add((double) busSteps.getInteger("distance") / (double)busSteps.getJSONObject("cost").getInteger("duration")); //添加每step的均速
+                originPath.getStep_mode().add(step_mode);
+                List<Position> step_Polyline = new ArrayList<>();
+                String[] eachPositionString = busSteps.getJSONObject("polyline").getString("polyline").split(";");
+                for(var position : eachPositionString){
+                    String t_Lng = position.split(",")[0];
+                    String t_Lat = position.split(",")[1];
+                    step_Polyline.add(new Position(t_Lng, t_Lat, step_mode));
+                }
+                originPath.getStep_polyLine().add(step_Polyline);
+                originPath.setSize(originPath.getSize() + 1);
+            }
+        }
+        return originPath;
     }
 
     public static OriginPath getOriginPathFromJSON(JSONObject jsonObject, String pathMode){
@@ -478,7 +793,7 @@ public class PathServiceImpl implements PathService {
             // 更新所有感染状态
             for(int i = 0; i < trajectoriesSize; i ++){
                 var tra = trajectories.get(i);
-                if(trajectories.get(i).state == Trajectory.State.S){
+                if(trajectories.get(i).state == Trajectory.State.S || tra.state == Trajectory.State.R){
                     unInfectedIdList.add((trajectories.get(i).getId()));
                 }else if(tra.state == Trajectory.State.E){
                     if(tra.infectedTime.compareTo(curTime) < 0){
@@ -488,7 +803,9 @@ public class PathServiceImpl implements PathService {
                         }else{
                             tra.state = Trajectory.State.I;
                         }
-                        unInfectedIdList.add(tra.getId());
+                        infectedIdList.add(tra.getId());
+                    }else{
+                        infectedIdList.add(tra.getId());
                     }
                 }else if(tra.state == Trajectory.State.A || tra.state == Trajectory.State.I){
                     if(tra.recoverTime.compareTo(curTime) < 0){
@@ -650,7 +967,70 @@ public class PathServiceImpl implements PathService {
                                     if(Util.rand.nextInt(10) > temp.maskRate){
                                         mask = 0.75;
                                     }
-                                    double rate = 1 - Math.exp(-1 * avgVirusNUm / 2700 * mask * vc);
+                                    double rate = 1 - Math.exp(-1 * avgVirusNUm / 700 * mask * vc);
+                                    if(Math.random() <rate){
+                                        t.state = Trajectory.State.E;
+                                        t.infectedBy = maxVirusNumId;
+                                        t.exposureTime = curTime;
+                                        t.isExposureInPoi = true;
+                                        long hours = Util.getNormalRand(72,48);
+                                        long recoverHours = Util.getNormalRand(170, 96);
+                                        t.infectedTime = t.exposureTime.plusHours(hours);
+                                        t.recoverTime = t.infectedTime.plusHours(recoverHours);
+                                        double r = 1;
+                                        r = getProcessionRate(virusS, t);
+                                        if(Math.random() < r){
+                                            t.isAsym = false;
+                                        }else t.isAsym = true;
+                                    }
+                                }
+                            }
+                        }else{
+                            List<Integer> interationTra = new ArrayList<>();
+                            for(int j = 0; j < aroundTraInPoi.size();j ++){
+                                interationTra.add(aroundTraInPoi.get(j));
+                            }
+                            List<Integer> unInfectedTraidInPoi = new ArrayList<>();
+                            List<Integer> infectedTraidInPoi = new ArrayList<>();
+                            infectedTraidInPoi.add(temp.getId());
+                            for(int j = 0; j < interationTra.size();j++){
+                                if(trajectories.get(interationTra.get(j)).state == Trajectory.State.S){
+                                    unInfectedTraidInPoi.add(interationTra.get(j));
+                                }else{
+                                    infectedTraidInPoi.add(interationTra.get(j));
+                                }
+                            }
+                            if(unInfectedTraidInPoi.size() > 0){
+                                double maxVirusNum = -1;
+                                double virusNumSum = 0;
+                                int maxVirusNumId = -1;
+                                for(int j = 0; j < infectedTraidInPoi.size(); j++){
+                                    Trajectory infectedTra = trajectories.get(infectedTraidInPoi.get(j));
+                                    double tempVirusNum =infectedTra.virusNum;
+                                    if(Util.rand.nextInt(10) > infectedTra.maskRate){
+                                        tempVirusNum *= (double)Util.getNormalRand(30,15) / 10.0;
+                                    }
+                                    if(maxVirusNum < tempVirusNum){
+                                        maxVirusNum = tempVirusNum;
+                                        maxVirusNumId = infectedTraidInPoi.get(j);
+                                    }
+                                    virusNumSum += tempVirusNum;
+                                }
+                                for(int j = 0; j < unInfectedTraidInPoi.size(); j++){
+                                    Trajectory t = trajectories.get(unInfectedTraidInPoi.get(j));
+                                    Duration duration = Duration.between(t.lastContactTimeInPoi, curTime);
+                                    long seconds = duration.toSeconds();
+                                    //计算感染概率
+                                    double avgVirusNUm = virusNumSum;
+                                    double mask = 1;
+                                    double vc = 1;
+                                    if(temp.isVaccines.equals("A")){
+                                        vc = 0.5;
+                                    }
+                                    if(Util.rand.nextInt(10) > temp.maskRate){
+                                        mask = 0.75;
+                                    }
+                                    double rate = 1 - Math.exp(-1 * avgVirusNUm / 700 * mask * vc);
                                     if(Math.random() <rate){
                                         t.state = Trajectory.State.E;
                                         t.infectedBy = maxVirusNumId;
@@ -669,15 +1049,13 @@ public class PathServiceImpl implements PathService {
                                 }
                             }
                         }
-                    }else{
-                        continue;
                     }
                 }
             }
-            // 更新位置
-            for(int i = 0; i < trajectoriesSize; i ++){
-                int timelineSize = trajectories.get(i).timeLine.size();
-                if(latestPosition.get(i) + 1 < timelineSize){
+        // 更新位置
+        for(int i = 0; i < trajectoriesSize; i ++){
+            int timelineSize = trajectories.get(i).timeLine.size();
+            if(latestPosition.get(i) + 1 < timelineSize){
                     var nextPoistionTime = trajectories.get(i).timeLine.get( latestPosition.get(i) + 1);
                     if(nextPoistionTime != null && nextPoistionTime.compareTo(curTime) < 0){
                         latestPosition.set(i, latestPosition.get(i) + 1 ); // 更新当前时间的位置.
@@ -739,6 +1117,13 @@ public class PathServiceImpl implements PathService {
             res *= 0.25;
         }
         return res * virus;
+    }
+
+    public void addHomeInformationAndInit(Trajectory res, String poiid){
+        POIs home = poIsService.findPOIByID(poiid);
+        res.homeLng = home.getLng();
+        res.homeLat = home.getLat();
+        res.homeName = home.getPOIName();
     }
 
     public void getSensiableToExposureAtfirst(Trajectory temp, LocalDateTime curTime){
