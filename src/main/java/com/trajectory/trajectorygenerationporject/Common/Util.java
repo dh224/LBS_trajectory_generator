@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.uuid.Generators;
 import com.trajectory.trajectorygenerationporject.POJO.OriginPath;
 import com.trajectory.trajectorygenerationporject.POJO.POIs;
+import com.trajectory.trajectorygenerationporject.POJO.Position;
 import com.trajectory.trajectorygenerationporject.POJO.Trajectory;
 import okhttp3.Headers;
 import okhttp3.OkHttpClient;
@@ -12,13 +13,19 @@ import okhttp3.Response;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.format.annotation.DateTimeFormat;
 
 
+import javax.swing.*;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.*;
 
 public class Util {
@@ -103,6 +110,76 @@ public class Util {
         return res;
     }
 
+    public static List<Trajectory> deepCopuTtrajectories(List<Trajectory> trajectories){
+        List<Trajectory> res = new ArrayList<>();
+        for(int i = 0; i < trajectories.size();i++){
+            var temp = trajectories.get(i);
+            var t = new Trajectory(temp.getPatternName(), temp.getMaskRate(), temp.getIsVaccines(), temp.getAge(), temp.getSex(),
+                    temp.getStartTime(), temp.getEndTime(), temp.getHomeLng(), temp.getHomeLat(),temp.getHomeName());
+            List<Position> path = new ArrayList<>();
+            List<LocalDateTime> timeLine = new ArrayList<>();
+            for(int j = 0; j < temp.path.size();j++){
+                var tTime = LocalDateTime.parse(temp.timeLine.get(j).toString());
+                var ttp = temp.path.get(j);
+                var tp = new Position(ttp.getLng(), ttp.getLat(), ttp.getTypeCode());
+                tp.poiid = ttp.poiid;
+                path.add(tp);
+                timeLine.add(tTime);
+            }
+            t.path = path;;
+            t.timeLine = timeLine;
+            res.add(t);
+            System.out.println("当前复制到第" + i);
+        }
+        return res;
+    }
+
+    public static Trajectory readExcelFile(InputStream inputStream){
+        XSSFWorkbook workbook = null;
+        try {
+            workbook = new XSSFWorkbook(inputStream);
+        } catch (Exception e){
+            System.out.println(e);
+        }
+        var dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        XSSFSheet xssfSheet = workbook.getSheetAt(0);
+        XSSFRow attribute = xssfSheet.getRow(0);
+        String patternName = attribute.getCell(0).toString();
+        int age = (int)Double.parseDouble(attribute.getCell(1).toString()) ;
+        String sex = attribute.getCell(2).toString();
+        int maskRate = (int)Double.parseDouble(attribute.getCell(3).toString());
+        String vicc = attribute.getCell(4).toString();
+        String homeLng = attribute.getCell(5).toString();
+        String homeLat = attribute.getCell(6).toString();
+        String homeName = attribute.getCell(7).toString();
+        LocalDateTime startTime = LocalDateTime.parse(attribute.getCell(9).toString(), dateFormatter);
+        LocalDateTime endTime = LocalDateTime.parse(attribute.getCell(10).toString(), dateFormatter);
+        var res = new Trajectory(patternName, maskRate, vicc, age, sex, startTime, endTime, homeLng, homeLat, homeName);
+        List<Position> path = new ArrayList<>();
+        List<LocalDateTime> timeLine = new ArrayList<>();
+        for(int i = 1; i < xssfSheet.getPhysicalNumberOfRows(); i++){
+            XSSFRow row = xssfSheet.getRow(i);
+            if(row == null){
+                continue;
+            }
+            String lng = row.getCell(0).toString();
+            String lat = row.getCell(1).toString();
+            String typeCode = row.getCell(2).toString();
+            String poiid = row.getCell(3).toString();
+            LocalDateTime time = LocalDateTime.parse(row.getCell(4).toString(), dateFormatter);
+            if(poiid.equals("-1")){
+                poiid = null;
+            }
+            Position tempPosition = new Position(lng, lat, typeCode);
+            tempPosition.setPoiid(poiid);
+            path.add(tempPosition);
+            timeLine.add(time);
+        }
+        res.path = path;
+        res.timeLine = timeLine;
+        return res;
+    }
+
     public static void outputHomeInformation(List<Trajectory> res, String fileName) throws IOException{
         XSSFWorkbook workbook=new XSSFWorkbook();//这里也可以设置sheet的Name
         //创建工作表对象
@@ -117,6 +194,43 @@ public class Util {
         //文档输出
         UUID uuid1 = Generators.timeBasedGenerator().generate();
         FileOutputStream out = new FileOutputStream(".\\src\\main\\resources\\static\\" +"当前批次生成的轨迹的起始点" + "u"+ uuid1.toString() + ".xlsx");
+        workbook.write(out);
+        out.close();
+    }
+
+    public static void outputReuseTrajectory(Trajectory trajectory, String fileName) throws IOException{
+        XSSFWorkbook workbook=new XSSFWorkbook();//这里也可以设置sheet的Name
+        //创建工作表对象
+        XSSFSheet sheet = workbook.createSheet();
+        XSSFRow row = sheet.createRow(0);
+        var dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        row.createCell(0).setCellValue(trajectory.patternName);// 模式名
+        row.createCell(1).setCellValue(trajectory.age);//
+        row.createCell(2).setCellValue(trajectory.sex);//第一行第一列为日期
+        row.createCell(3).setCellValue(trajectory.maskRate);//第一行第一列为日期
+        row.createCell(4).setCellValue(trajectory.isVaccines);//第一行第一列为日期
+        row.createCell(5).setCellValue(trajectory.homeLng);//第一行第一列为日期
+        row.createCell(6).setCellValue(trajectory.homeLat);//第一行第一列为日期
+        row.createCell(7).setCellValue(trajectory.homeName);//第一行第一列为日期
+        row.createCell(8).setCellValue(trajectory.path.size());
+        row.createCell(9).setCellValue(dateFormatter.format(trajectory.startTime).toString());
+        row.createCell(10).setCellValue(dateFormatter.format(trajectory.endTime).toString());
+        for(int i = 0; i < trajectory.path.size(); i ++){
+            //创建工作表的行
+            row = sheet.createRow(i+1);//设置第一行，从零开始
+            row.createCell((0)).setCellValue(trajectory.path.get(i).getLng());
+            row.createCell((1)).setCellValue(trajectory.path.get(i).getLat());
+            row.createCell((2)).setCellValue(trajectory.path.get(i).getTypeCode());
+            if(trajectory.path.get(i).isInPoi()){
+                row.createCell((3)).setCellValue(trajectory.path.get(i).getPoiid());
+            }else{
+                row.createCell((3)).setCellValue("-1");
+            }
+            row.createCell(4).setCellValue(dateFormatter.format(trajectory.getTimeLine().get(i)));//第一行第一列为日期
+            row.createCell(5).setCellValue("[" + trajectory.path.get(i).getLng()+ "," + trajectory.path.get(i).getLat() +  "],");//第一行第三列为aaaaaaaaaaaa
+        }
+        UUID uuid1 = Generators.timeBasedGenerator().generate();
+        FileOutputStream out = new FileOutputStream(".\\src\\main\\resources\\static\\" + fileName + "uid"+ uuid1.toString() + ".xlsx");
         workbook.write(out);
         out.close();
     }
@@ -158,6 +272,25 @@ public class Util {
         out.close();
     }
 
+    public static void outputSimulationResult(List<LocalDateTime> timeLine, List<List<Integer>> res, String fileName) throws IOException{
+        XSSFWorkbook workbook = new XSSFWorkbook();
+        XSSFSheet sheet = workbook.createSheet();
+        for(int i = 0; i < timeLine.size(); i ++){
+            var row = sheet.createRow(i);
+            row.createCell(0).setCellValue(i);
+            row.createCell(1).setCellValue(timeLine.get(i).toString());
+            row.createCell(2).setCellValue(res.get(i).get(0));//seiar
+            row.createCell(3).setCellValue(res.get(i).get(1));
+            row.createCell(4).setCellValue(res.get(i).get(2));
+            row.createCell(5).setCellValue(res.get(i).get(3));
+            row.createCell(6).setCellValue(res.get(i).get(4));//i + r
+            row.createCell(7).setCellValue(res.get(i).get(2) + res.get(i).get(3));
+        }
+        UUID uuid1 = Generators.timeBasedGenerator().generate();
+        FileOutputStream out = new FileOutputStream(".\\src\\main\\resources\\static\\" +fileName+ "当前模拟的结果uid "+ uuid1.toString() + ".xlsx");
+        workbook.write(out);
+        out.close();
+    }
     public static Set<Integer> getRandomsNoRepeat(int start, int end, int count){
         if(start > end || count < 1){
             count = 0;

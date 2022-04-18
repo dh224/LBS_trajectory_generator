@@ -11,16 +11,27 @@ import com.trajectory.trajectorygenerationporject.Service.CityService;
 import com.trajectory.trajectorygenerationporject.Service.POITypeService;
 import com.trajectory.trajectorygenerationporject.Service.POIsService;
 import com.trajectory.trajectorygenerationporject.Service.PathService;
+import ma.glasnost.orika.MapperFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @RestController
 public class HelloWorldController {
@@ -35,6 +46,9 @@ public class HelloWorldController {
 
     @Autowired
     private POITypeService poiTypeService;
+
+    @Autowired
+    private MapperFacade mapperFacade;
 
     @GetMapping("/hello")
     public String hello() throws IOException {
@@ -59,6 +73,10 @@ public class HelloWorldController {
         int longCommuteRange = 20000;
         int midCommuteRange = 10000;
         int shortCommuteRange = 3000;
+        List<String> keys = new ArrayList<>();
+        keys.add("192b951ff8bc56e05cb476f8740a760c");
+        keys.add("051b74eefaa0e56e8d7ad11b11b96d2b");
+        int keyPointer = 0;
         String pName = post.get("pname").toString();
         String cityName = post.get("cityname").toString();
         if(pName.equals("北京市") || pName.equals("上海市") || pName.equals("重庆市")|| pName.equals("天津市")){
@@ -167,6 +185,7 @@ public class HelloWorldController {
         List<Integer> timmer  = new ArrayList<>();
         List<Trajectory> res = new ArrayList<>();
         for(int i = 0; i < trajectoryNum; i ++){
+            if(i > 800 && keyPointer == 0) keyPointer++;
             int num  = pathService.choosePattern(TrajectoryRateNum, patternChooser);
             int maxage = Integer.parseInt(patternsAttributeJSONList.get(num).get("maxage").toString());
             int minAge = Integer.parseInt(patternsAttributeJSONList.get(num).get("minage").toString());
@@ -180,12 +199,12 @@ public class HelloWorldController {
             String patternName = patternsAttributeJSONList.get(num).get("patternname").toString();
             int randomage = Util.rand.nextInt(maxage - minAge + 1) + minAge;
             LocalTime a = LocalTime.now();
-            Trajectory trajectory = pathService.getTrajectory(patternName, cityName,cityName,startTime, endTime,pattern, false, randomage, "学生",gender, 8, "疫苗",drivingRate,9,patternName+ i+"POIs");
+            Trajectory trajectory = pathService.getTrajectory(patternName, cityName,cityName,startTime, endTime,pattern, false, randomage, "学生",gender, 8, "疫苗",drivingRate,9,patternName+ i+"POIs", keys.get(keyPointer));
             LocalTime end = LocalTime.now();
             Duration between = Duration.between(a, end);
             timmer.add(((int)between.getSeconds()));
             res.add(trajectory);
-            Util.outputtheTrajectory(trajectory, patternName + i) ;
+            Util.outputReuseTrajectory(trajectory, patternName + i);
         }
         long timeGapSum = 0;
         for(int j = 0;j < timmer.size();j++){
@@ -194,8 +213,8 @@ public class HelloWorldController {
         double timeGap = (double)timeGapSum / timmer.size();
         System.out.println("生成每条轨迹的平均耗时为：" + timeGap);
         Util.outputHomeInformation(res, "aaa");
-        pathService.getTrajectoryAndSimulation(res,7,startTime,endTime);
         LocalTime simulationStartTime = LocalTime.now();
+        pathService.getTrajectoryAndSimulation(res,7,startTime,endTime);
         for(int i = 0 ; i < res.size(); i ++){
             var t = res.get(i);
             if(t.state == Trajectory.State.S){
@@ -206,8 +225,8 @@ public class HelloWorldController {
             }
         }
         LocalTime simulationEndTime = LocalTime.now();
-        Duration between = Duration.between(simulationStartTime, simulationEndTime);
-        System.out.println("模拟的总耗时" + between.getSeconds());
+        Duration betweena = Duration.between(simulationStartTime, simulationEndTime);
+        System.out.println("模拟的总耗时" + betweena.getSeconds());
         return "已生成" + trajectoryNum + "个轨迹";
     }
     @GetMapping("/GenerateTrajectory")
@@ -312,5 +331,72 @@ public class HelloWorldController {
         //创建工作薄对象
         //Util.outputtheTrajectory(trajectory, "tra");
         return "1";
+    }
+
+    @GetMapping("/simulationTrajectory")
+    public String simulationTrajectory() throws IOException{
+        List<Trajectory> trajectories = new ArrayList<>();
+        var st = LocalTime.now();
+        try(Stream<Path> pathStream = Files.walk(Paths.get(".\\src\\main\\resources\\static"))){
+            List<File> filesList = pathStream.filter(Files::isRegularFile).map(Path::toFile).collect(Collectors.toList());
+            for (var file: filesList) {
+                LocalTime start = LocalTime.now();
+               var inputStream = new FileInputStream(file);
+               var tempTra = Util.readExcelFile(inputStream);
+               tempTra.isInPoiContacted = true;
+               String time = "2022-11-01 00:00:00";
+               var dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+               tempTra.lastContactTimeInPoi = LocalDateTime.parse(time, dateFormatter);
+               tempTra.lastPoiid = tempTra.path.get(0).poiid;
+               tempTra.printTrajectoryInformation();
+               trajectories.add(tempTra);
+               LocalTime end = LocalTime.now();
+               Duration between = Duration.between(start, end);
+               System.out.println("读取单个文件的耗时为：" + between.getSeconds() + "s");
+            }
+        }
+        LocalTime et = LocalTime.now();
+        Duration between = Duration.between(st, et);
+        System.out.println("读取文件的总耗时为：" + between.getSeconds() + "s");
+        int z = 0;
+        int x = 0;
+        int s = 0;
+        int t = 0;
+        long agesum = 0;
+        for(int i = 0; i < trajectories.size(); i ++){
+            agesum += trajectories.get(i).getAge();
+            String pattern = trajectories.get(i).getPatternName();
+            if(pattern.equals("中学生")){
+                z++;
+            }else if (pattern.equals("小学生")){
+                x++;
+            }else if (pattern.equals("上班族")){
+                s++;
+            }else{
+                t++;
+            }
+        }
+        System.out.println("平均年龄是：" + agesum/trajectories.size());
+        System.out.println("中学生：" +z + "小学生" + x + "上班族" + s + "退休者" + t);
+        for (int j = 0; j < 10; j ++){
+            LocalTime simulationStartTime = LocalTime.now();
+            List<Trajectory> trajectories1 = Util.deepCopuTtrajectories(trajectories);
+            pathService.getTrajectoryAndSimulation(trajectories1, 8,"2022-11-01 00:00:00", "2022-11-14 01:00:00" );
+            int r0Sum = 0;
+            int infectedNum = 0;
+            for(int i = 0 ; i < trajectories1.size(); i ++){
+                var tt = trajectories1.get(i);
+                if(tt.infectedNum > 0){
+                    r0Sum+=tt.infectedNum;
+                    infectedNum++;
+                }
+            }
+            double r0 =(double)r0Sum * 1.0 / infectedNum;
+            System.out.println("当前模拟的r0为:" + r0);
+            LocalTime simulationEndTime = LocalTime.now();
+            Duration betweena = Duration.between(simulationStartTime, simulationEndTime);
+            System.out.println("模拟的耗时" + betweena.getSeconds());
+        }
+        return "a";
     }
 }

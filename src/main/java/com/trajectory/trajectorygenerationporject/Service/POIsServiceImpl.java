@@ -102,7 +102,7 @@ public class POIsServiceImpl implements POIsService {
         //System.out.println("findRandomPOIWithCityCodeAndTypeCode" + cityCode + " typecode:" + typeCode);
         String url = "https://restapi.amap.com/v5/place/text?parameters&key=192b951ff8bc56e05cb476f8740a760c&types=" + typeCode +
                 "&region=" + adCode + "&city_limit=true&show_fields=navi&page_size=25&page_num=" + page_num;
-        this.log.info("发送请求获得随机POI url:" + url);
+//        this.log.info("发送请求获得随机POI url:" + url);
         JSONObject res = Util.sentGet(url);
         var pois = res.getJSONArray("pois");
         int Max_num = 0;
@@ -126,7 +126,7 @@ public class POIsServiceImpl implements POIsService {
         if(page_num < 0) page_num = - page_num;
         String url = "https://restapi.amap.com/v5/place/text?parameters&key=192b951ff8bc56e05cb476f8740a760c&types=" + typeCode +
                 "&region=" + cityCode + "&show_fields=navi&page_size=25&page_num=" + page_num;
-        this.log.info("发送请求获得随机POI url:" + url);
+//        this.log.info("发送请求获得随机POI url:" + url);
         JSONObject res = Util.sentGet(url);
         var pois = res.getJSONArray("pois");
         int Max_num = 0;
@@ -150,7 +150,7 @@ public class POIsServiceImpl implements POIsService {
         String url = "https://restapi.amap.com/v3/place/around?parameter&key=" + key + "&types=" + typeCode + "&city=" + cityCode + "&location=" +
                 basePosition.getLng() + "," + basePosition.getLat() + "&radius=" + radius + "&sortrule=weight&&city_limit=true&page=1";
         JSONObject res = Util.sentGet(url);
-        System.out.println("当前v3的url用于获取总数：" + url);
+//        System.out.println("当前v3的url用于获取总数：" + url);
         int count = res.getInteger("count");
         if(count == 0) return null;
         else {
@@ -161,7 +161,7 @@ public class POIsServiceImpl implements POIsService {
                     basePosition.getLng() + "," + basePosition.getLat() + "&radius=" + radius + "&extensions=all&sortrule=weight&&city_limit=true&page=" + pagesize;
             num = num % 20;
             if(num >= count - 1) num = count - 1;
-            System.out.println("当前v3的url请求：" + url);
+//            System.out.println("当前v3的url请求：" + url);
             res = Util.sentGet(url);
             JSONArray pois = res.getJSONArray("pois");
             JSONObject poi = pois.getJSONObject(num);
@@ -176,7 +176,7 @@ public class POIsServiceImpl implements POIsService {
         System.out.println("findRandomPOIWithCityCodeAndTypeCodeAndDistance" + radius );
         String url = "https://restapi.amap.com/v5/place/around?parameters" + "&key=192b951ff8bc56e05cb476f8740a760c&types=" + typeCode +
                 "&region=" + cityCode + "&location=" + basePosition.getLng() + "," + basePosition.getLat() + "&radius=" + radius + "&city_limit=true" +"&show_fields=navi&page_size=20&page_num=" + page_num;
-        this.log.info("发送请求依据距离获得随机POI url:" + url);
+//        this.log.info("发送请求依据距离获得随机POI url:" + url);
         JSONObject res = Util.sentGet(url);
         var pois = res.getJSONArray("pois");
         int Max_num = 0;
@@ -192,9 +192,9 @@ public class POIsServiceImpl implements POIsService {
         }
         int poi_num = Util.rand.nextInt(pois.size());
         String poiid = parsePOIAndInsert(pois, typeCode,poi_num);
-        System.out.println("搜索半径是：" + radius);
-        System.out.println("搜索新POI 测试typeCode" + typeCode);
-        System.out.println("新添加的POI的名字是" + findPOIByID(poiid).getPOITypeCode());
+//        System.out.println("搜索半径是：" + radius);
+//        System.out.println("搜索新POI 测试typeCode" + typeCode);
+//        System.out.println("新添加的POI的名字是" + findPOIByID(poiid).getPOITypeCode());
         return poiid;
     }
     public String parsePOIAndInsert(JSONArray pois, String typeCode,int index){
@@ -223,7 +223,7 @@ public class POIsServiceImpl implements POIsService {
         }
         POIs poIs = new POIs(poiadCode,poiadName,poiCitycode,poiCityname,poiid, poiName, poiTypeName,
                 typeCode, poilng,poilat,entrLng, entrLat,null,null);
-            System.out.println("要插新POI点了!" + poIs);
+//            System.out.println("要插新POI点了!" + poIs);
             try{
                 poisDAO.insertPOI(poIs);
             }catch (Exception e){
