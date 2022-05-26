@@ -27,8 +27,9 @@ public class Trajectory {
     public LocalDateTime startTime;
     public LocalDateTime endTime;
 
-    //有关疫情模拟相关的属性（不得不添加的)
+    //有关疫情模拟相关的属性
     public int id;
+    public String fileName;
     public State state;
     public int virusNum;
     public int maskRate;
@@ -50,6 +51,7 @@ public class Trajectory {
     public int contactLevel;
     public boolean isExposureInPoi;
     public Integer infectedNum;
+    public String infectedPositionType;
 
     public String homeLng;
     public String homeLat;

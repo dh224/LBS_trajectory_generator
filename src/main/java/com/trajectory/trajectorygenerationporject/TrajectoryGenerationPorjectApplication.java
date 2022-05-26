@@ -7,5 +7,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class TrajectoryGenerationPorjectApplication {
     public static void main(String[] args) {
         SpringApplication.run(TrajectoryGenerationPorjectApplication.class, args);
+
     }
 }

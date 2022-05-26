@@ -21,7 +21,7 @@ public interface POIsService {
                           String lng, String lat, String entrLng, String entrLat, String exitLng,
                           String exitLat);
     public void searchPOIsAllType(String cityName, String adName) throws IOException;
-    public String findRandomPOIWithCityCodeAndAdCodeAndTypeCode(String cityCode, String adCode, String typeCode) throws IOException;
+    public String findRandomPOIWithCityCodeAndAdCodeAndTypeCode(String cityCode, String adCode, String typeCode, String key) throws IOException;
     public String findRandomPOIWithCityCodeAndTypeCode(String cityCode, String typeCode) throws IOException;
     public String findRandomPOIWithCityCodeAndTypeCodeAndDistance(String cityCode, String typeCode, Position basePosition,Integer radius) throws IOException;
     public String findRandomPOIWithCityCodeAndTypeCodeAndDistance_v3(String cityCOde, String typeCode, Position basePosition, Integer radius,String key) throws IOException;
